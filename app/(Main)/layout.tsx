@@ -1,7 +1,25 @@
+import { AppSidebar } from "@/components/ui/app-sidebar";
+import ProtectedRoute from "@/components/ui/ProtectedRoute";
+import Image from "next/image";
+import Header from "@/components/ui/header";
+import {
+  Sidebar,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+
 export default function MainLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div>{children}</div>;
+  return (
+    <ProtectedRoute>
+      <Header />
+      <SidebarProvider>
+        <AppSidebar />
+        <main>{children}</main>
+      </SidebarProvider>
+    </ProtectedRoute>
+  );
 }

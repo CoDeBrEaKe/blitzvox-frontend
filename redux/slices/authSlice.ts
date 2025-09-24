@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
+import { BASE_URL } from "../type";
 
 // Define types
 interface User {
@@ -23,11 +24,26 @@ const initialState: AuthState = {
   error: null,
 };
 
+export const checkAuth = createAsyncThunk(
+  "auth/checkAuth",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/me`, {
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue("Not authenticated");
+    }
+  }
+);
+
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (loginData: loginData, { rejectWithValue }) => {
     try {
-      const response = await axios.post("/login", loginData, {
+      const response = await axios.post(`${BASE_URL}/login`, loginData, {
+        withCredentials: true,
         headers: {
           "Content-Type": "application/json",
         },
@@ -48,7 +64,7 @@ export const logoutUser = createAsyncThunk(
   "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
-      await axios.post("/logout");
+      await axios.post(`${BASE_URL}/logout`);
       return null;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -81,6 +97,35 @@ const authSlice =
         .addCase(loginUser.fulfilled, (state, action: PayloadAction<User>) => {
           state.user = action.payload;
           state.loading = false;
+          state.error = null;
+        })
+        .addCase(loginUser.rejected, (state, action) => {
+          // ← Add this
+          state.loading = false;
+          state.error = action.payload as string;
+        })
+        .addCase(checkAuth.pending, (state) => {
+          state.loading = true;
+          state.error = null;
+        })
+        .addCase(checkAuth.fulfilled, (state, action: PayloadAction<User>) => {
+          state.user = action.payload;
+          state.loading = false;
+          state.error = null;
+        })
+        .addCase(checkAuth.rejected, (state) => {
+          state.user = null;
+          state.loading = false;
+          state.error = null;
+        })
+        .addCase(logoutUser.pending, (state) => {
+          state.user = null;
+          state.loading = true;
+          state.error = null;
+        })
+        .addCase(logoutUser.fulfilled, (state) => {
+          state.loading = false;
+          state.user = null;
           state.error = null;
         });
     },
