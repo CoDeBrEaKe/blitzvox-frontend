@@ -81,14 +81,16 @@ type SortConfig = {
 
 export function DataTableDemo() {
   const [emailFilter, setEmailFilter] = React.useState<string>("");
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<ColumnVisibility>({
-      select: true,
-      status: true,
-      email: true,
-      amount: true,
-      actions: true,
-    });
+  const [columnVisibility, setColumnVisibility] = React.useState<
+    Record<string, boolean>
+  >({
+    select: true,
+    status: true,
+    email: true,
+    amount: true,
+    actions: true,
+  });
+
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
     new Set()
   );
@@ -152,7 +154,7 @@ export function DataTableDemo() {
   }, [filteredData, sortConfig]);
 
   return (
-    <div className="w-full">
+    <div className="w-full px-4">
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter emails..."
@@ -186,7 +188,7 @@ export function DataTableDemo() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-md border px-4">
         <Table>
           <TableHeader>
             <TableRow>

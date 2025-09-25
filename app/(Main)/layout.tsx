@@ -18,7 +18,7 @@ export default function MainLayout({
       <Header />
       <SidebarProvider>
         <AppSidebar />
-        <main>{children}</main>
+        <main className="w-full bg-white">{children}</main>
       </SidebarProvider>
     </ProtectedRoute>
   );
