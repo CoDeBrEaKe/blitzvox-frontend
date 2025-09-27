@@ -1,20 +1,11 @@
 "use client";
 import * as React from "react";
 import { useEffect } from "react";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DataTableDemoProps, variableData } from "@/redux/type";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+import { BASE_URL, DataTableDemoProps } from "@/redux/type";
+
 import {
   Table,
   TableBody,
@@ -23,26 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
-export function DataTableDemo({
-  data = [],
-  showcase = [],
-  columnVisibility = {},
-  setColumnVisibility,
-}: DataTableDemoProps) {
+export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
   // Flexible column visibility - can be any string keys
-
-  useEffect(() => {
-    if (showcase.length > 0) {
-      const newVisibility: Record<string, boolean> = {};
-
-      showcase.forEach((column) => {
-        newVisibility[column] = true; // ✅ Correct syntax
-      });
-
-      setColumnVisibility({ select: true, ...newVisibility });
-    }
-  }, [showcase]);
+  const router = useRouter();
 
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
     new Set()
@@ -66,46 +43,23 @@ export function DataTableDemo({
       setSelectedRows(new Set(data.map((row) => row.id)));
     }
   };
-
   // Filter data by email
-
   return (
     <div className="w-full ">
       <div className="overflow-hidden rounded-md border px-4">
         <Table>
           <TableHeader>
             <TableRow>
-              {columnVisibility.select && (
-                <TableHead>
-                  <Checkbox
-                    checked={selectedRows.size === data.length}
-                    onCheckedChange={toggleAllRows}
-                    aria-label="Select all"
-                  />
-                </TableHead>
-              )}
-              {columnVisibility.status && <TableHead>Status</TableHead>}
-              {columnVisibility.email && (
-                <TableHead>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    Email
-                    <ArrowUpDown />
-                  </Button>
-                </TableHead>
-              )}
-              {columnVisibility.amount && (
-                <TableHead className="text-right">Amount</TableHead>
-              )}
               {/* Dynamic columns from showcase */}
-              {showcase.map(
+              {Object.keys(showcase).map(
                 (column) =>
-                  columnVisibility[column] && (
-                    <TableHead key={column} className="capitalize">
-                      {column}
+                  showcase[column] != "" && (
+                    <TableHead key={showcase[column]} className="capitalize">
+                      {showcase[column]}
                     </TableHead>
                   )
               )}
-              {columnVisibility.actions && <TableHead />}
+              {showcase.actions && <TableHead />}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -114,8 +68,9 @@ export function DataTableDemo({
                 <TableRow
                   key={row.id}
                   data-state={selectedRows.has(row.id) ? "selected" : undefined}
+                  className="cursor-pointer"
                 >
-                  {columnVisibility.select && (
+                  {showcase.select && (
                     <TableCell>
                       <Checkbox
                         checked={selectedRows.has(row.id)}
@@ -124,55 +79,49 @@ export function DataTableDemo({
                       />
                     </TableCell>
                   )}
-                  {columnVisibility.status && (
-                    <TableCell className="capitalize">{row.status}</TableCell>
-                  )}
-                  {columnVisibility.email && (
-                    <TableCell className="lowercase">{row.email}</TableCell>
-                  )}
-                  {columnVisibility.amount && (
-                    <TableCell className="text-right font-medium">
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      }).format(row.amount)}
-                    </TableCell>
-                  )}
-                  {/* Dynamic cells for showcase columns */}
-                  {showcase.map(
-                    (column) =>
-                      columnVisibility[column] && (
-                        <TableCell key={column}>
+
+                  {Object.keys(showcase).map(
+                    (key) =>
+                      showcase[key] != "" &&
+                      key != "select" &&
+                      key != "actions" && (
+                        <TableCell
+                          key={showcase[key]}
+                          onClick={() => router.push(`/${url}/${row.id}`)}
+                        >
                           {/* You can customize what to display for each dynamic column */}
-                          {column}
+                          {row[key]}
                         </TableCell>
                       )
                   )}
-                  {columnVisibility.actions && (
+                  {showcase.actions && (
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              navigator.clipboard.writeText(row.id)
+                      <Button
+                        className="bg-red-500 cursor-pointer"
+                        key={row.id}
+                        onClick={async () => {
+                          try {
+                            if (
+                              confirm(
+                                "Are you sure you want to delete this row?"
+                              )
+                            ) {
+                              await axios.delete(
+                                `${BASE_URL}/${url}/${row.id}`,
+                                {
+                                  withCredentials: true,
+                                }
+                              );
+                              window.location.reload();
                             }
-                          >
-                            Copy payment ID
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>View customer</DropdownMenuItem>
-                          <DropdownMenuItem>
-                            View payment details
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                          } catch (e) {
+                            console.log(e);
+                          }
+                        }}
+                        onSubmit={(e) => e.preventDefault()}
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   )}
                 </TableRow>
@@ -181,9 +130,7 @@ export function DataTableDemo({
               <TableRow>
                 <TableCell
                   colSpan={
-                    Object.keys(columnVisibility).filter(
-                      (key) => columnVisibility[key]
-                    ).length
+                    Object.keys(showcase).filter((key) => showcase[key]).length
                   }
                   className="h-24 text-center"
                 >

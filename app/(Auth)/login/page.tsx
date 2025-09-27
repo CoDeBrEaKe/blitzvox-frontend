@@ -25,7 +25,7 @@ const page = () => {
 
   useEffect(() => {
     if (user) {
-      const redirectTo = "/dashboard";
+      const redirectTo = "/clients";
       router.push(redirectTo);
     }
   }, [user, router]);
@@ -35,7 +35,7 @@ const page = () => {
     dispatch(
       loginUser({ username: formData.username, password: formData.password })
     );
-    router.push("/dashboard");
+    router.push("/clients");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

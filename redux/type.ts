@@ -7,7 +7,6 @@ export interface variableData {
 }
 export interface DataTableDemoProps {
   data: variableData[];
-  showcase: string[];
-  columnVisibility: Record<string, boolean>;
-  setColumnVisibility: (value: SetStateAction<Record<string, boolean>>) => void;
+  showcase: Record<string, string>;
+  url: string;
 }

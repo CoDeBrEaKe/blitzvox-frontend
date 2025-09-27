@@ -1,5 +1,6 @@
+"use client";
 import { Users, Verified, Users2, Mail, List } from "lucide-react";
-
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -10,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
+import { cn } from "@/lib/utils";
 // Menu items.
 const items = [
   {
@@ -46,6 +47,7 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const pathname = usePathname();
   return (
     <Sidebar className="z-0 ">
       <SidebarContent className="bg-white">
@@ -54,7 +56,16 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton className="px-4 py-7" asChild>
+                  <SidebarMenuButton
+                    isActive={item.url === pathname}
+                    className={cn(
+                      "px-4 py-7",
+                      item.url === pathname
+                        ? "bg-[#EFF6FF]! text-[#28A7FF]!" // active styles
+                        : "text-muted-foreground hover:bg-muted"
+                    )}
+                    asChild
+                  >
                     <a href={item.url}>
                       <item.icon />
                       <span className="text-lg font-semibold">

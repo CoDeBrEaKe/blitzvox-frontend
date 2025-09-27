@@ -1,6 +1,6 @@
 "use client";
 import { DataTableDemo } from "@/components/ui/table-app";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as React from "react";
 
 import {
@@ -18,47 +18,42 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import { variableData } from "@/redux/type";
+import { getClients } from "@/utils/api";
+
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
-  const [columnVisibility, setColumnVisibility] = React.useState<
-    Record<string, boolean>
-  >({
-    name: true,
-    age: true,
+
+  const [showcase, setShowcase] = useState<Record<string, string>>({
+    select: "select",
+    first_name: "Name",
+    email: "E-mail",
+    phone: "Telefone",
+    company_name: "Firma",
+    city: "Stadt",
+    actions: "actions",
   });
+  const [clients, setClients] = useState<variableData[]>([]);
 
-  const [showcase, setShowcase] = useState([
-    "Name",
-    "E-mail",
-    "Telefon",
-    "Firma",
-    "Stadt",
-    "Verträge",
-    "Letztes Feedback",
-    "Aktionen",
-  ]);
-  const [clients, setClients] = useState([
-    {
-      name: "Mohamed",
-      Email: "Date",
-      Telefon: "Date",
-      Firma: "Date",
-      Stadt: "Date",
-      Verträge: "Date",
-      "Letztes Feedback": "Date",
-      Aktionen: "Date",
-    },
-  ]);
+  useEffect(() => {
+    const fetchClients = async () => {
+      const clientsData = await getClients();
+      setClients([...clientsData]);
+    };
+    fetchClients();
+  }, []);
 
-  // Handle column visibility - now accepts any string
-  const toggleColumnVisibility = (column: string): void => {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [column]: !prev[column],
-    }));
+  const toggleShowcase = (column: string) => {
+    setShowcase((prev) => {
+      const newObj =
+        prev[column] === ""
+          ? { ...prev, [column]: column }
+          : { ...prev, [column]: "" };
+
+      return newObj;
+    });
   };
-  console.log(filter);
+
   return (
     <>
       <div className="px-4 text-2xl font-semibold">
@@ -80,17 +75,15 @@ export default function Home() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {Object.keys(columnVisibility)
-                  .filter((key) => key !== "select" && key !== "actions")
-                  .map((column) => (
-                    <DropdownMenuItem
-                      key={column}
-                      className="capitalize"
-                      onSelect={() => setFilterOn(column)}
-                    >
-                      {column}
-                    </DropdownMenuItem>
-                  ))}
+                {Object.keys(showcase).map((key) => (
+                  <DropdownMenuItem
+                    key={key}
+                    className="capitalize"
+                    onSelect={() => setFilterOn(key)}
+                  >
+                    {key}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
             <Button variant="outline" className="ml-auto">
@@ -104,27 +97,20 @@ export default function Home() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {Object.keys(columnVisibility)
-                .filter((key) => key !== "select" && key !== "actions")
-                .map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column}
-                    className="capitalize"
-                    checked={columnVisibility[column]}
-                    onCheckedChange={() => toggleColumnVisibility(column)}
-                  >
-                    {column}
-                  </DropdownMenuCheckboxItem>
-                ))}
+              {Object.keys(showcase).map((key) => (
+                <DropdownMenuCheckboxItem
+                  key={key}
+                  className="capitalize"
+                  checked={showcase[key] != "" ? true : false}
+                  onCheckedChange={() => toggleShowcase(key)}
+                >
+                  {key}
+                </DropdownMenuCheckboxItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DataTableDemo
-          data={clients}
-          showcase={showcase}
-          columnVisibility={columnVisibility}
-          setColumnVisibility={setColumnVisibility}
-        />
+        <DataTableDemo data={clients} showcase={showcase} url={"clients"} />
       </div>
     </>
   );
