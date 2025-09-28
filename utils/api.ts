@@ -8,3 +8,10 @@ export async function getClients() {
   });
   return req.data.clients;
 }
+
+export async function getClientData(id: number) {
+  const req: variableData = await axios.get(`${BASE_URL}/clients/${id}`, {
+    withCredentials: true,
+  });
+  return req.data.client;
+}
