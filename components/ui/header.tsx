@@ -7,7 +7,7 @@ function Header() {
   user = (user as any).user.dataValues;
   if (user) {
     return (
-      <header className="flex items-center justify-between lg:px-8 bg-white h-[90px] z-1 relative">
+      <header className="flex items-center justify-between px-2 lg:px-8 bg-white h-[90px] z-1 relative">
         <div className="flex gap-1 items-center">
           <img
             src={logo.src}
@@ -17,7 +17,7 @@ function Header() {
           <h2 className="text-lg lg:text-2xl font-semibold">Blitzvox CRM</h2>
         </div>
         <div className="text-lg lg:text-2xl">
-          Hello ,{user.name.toUpperCase()}
+          Hello , {user.name.toUpperCase()}
         </div>
       </header>
     );

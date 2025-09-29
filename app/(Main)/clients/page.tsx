@@ -59,7 +59,14 @@ export default function Home() {
       <div className="px-4 text-2xl font-semibold">
         <h2>Clients</h2>
         <div className="flex items-center py-4">
-          <form className="flex gap-2">
+          <form
+            className="flex gap-2"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              let filteration = await getClients(`?${filterOn}=${filter}`);
+              setClients(filteration);
+            }}
+          >
             <Input
               placeholder="Filter "
               value={filter}
@@ -75,19 +82,27 @@ export default function Home() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {Object.keys(showcase).map((key) => (
-                  <DropdownMenuItem
-                    key={key}
-                    className="capitalize"
-                    onSelect={() => setFilterOn(key)}
-                  >
-                    {key}
-                  </DropdownMenuItem>
-                ))}
+                {Object.keys(showcase).map(
+                  (key) =>
+                    key != "select" &&
+                    key != "actions" && (
+                      <DropdownMenuItem
+                        key={key}
+                        className="capitalize"
+                        onSelect={(e) => {
+                          setFilterOn(key);
+
+                          (e as any)?.target?.value(showcase[key]);
+                        }}
+                      >
+                        {showcase[key]}
+                      </DropdownMenuItem>
+                    )
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             <Button variant="outline" className="ml-auto">
-              {filterOn != "" ? filterOn : "Filter"} <ChevronDown />
+              {"Filter"}
             </Button>
           </form>
           <DropdownMenu>

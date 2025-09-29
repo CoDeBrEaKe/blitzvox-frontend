@@ -31,7 +31,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (!isChecking && !loading && !user) {
       router.push("/login");
     }
-  }, []);
+  }, [user, loading, isChecking]);
 
   // Show loading spinner while checking auth
   if (loading) {
