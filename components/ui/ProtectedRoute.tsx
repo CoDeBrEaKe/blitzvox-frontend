@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { checkAuth } from "@/redux/slices/authSlice";
@@ -12,17 +12,26 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user, loading } = useAppSelector((state) => state.auth);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     // Check authentication status
-    dispatch(checkAuth());
+    async function check() {
+      try {
+        await dispatch(checkAuth());
+      } catch (e) {
+        router.push("/login");
+      } finally {
+        setIsChecking(false);
+      }
+    }
+    check();
   }, [dispatch]);
   useEffect(() => {
-    // Redirect if not authenticated and not loading
-    if (!loading && !user) {
+    if (!isChecking && !loading && !user) {
       router.push("/login");
     }
-  }, [user, loading, router]);
+  }, []);
 
   // Show loading spinner while checking auth
   if (loading) {

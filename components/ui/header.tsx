@@ -7,12 +7,18 @@ function Header() {
   user = (user as any).user.dataValues;
   if (user) {
     return (
-      <header className="flex  items-center justify-between px-8 bg-white h-[90px] z-1 relative">
+      <header className="flex items-center justify-between lg:px-8 bg-white h-[90px] z-1 relative">
         <div className="flex gap-1 items-center">
-          <img src={logo.src} alt="logo" className="max-w-25 max-h-25" />
-          <h2 className="text-2xl font-semibold">Blitzvox CRM</h2>
+          <img
+            src={logo.src}
+            alt="logo"
+            className="max-w-15 max-h-15 md:max-w-25 md:max-h-25"
+          />
+          <h2 className="text-lg lg:text-2xl font-semibold">Blitzvox CRM</h2>
         </div>
-        <div className="text-2xl">Hello ,{user.name.toUpperCase()}</div>
+        <div className="text-lg lg:text-2xl">
+          Hello ,{user.name.toUpperCase()}
+        </div>
       </header>
     );
   }

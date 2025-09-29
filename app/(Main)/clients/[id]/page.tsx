@@ -1,12 +1,30 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
 import { DataTableDemo } from "@/components/ui/table-app";
 import { getClientData } from "@/utils/api";
 import React, { useEffect, useState } from "react";
-import { variableData } from "@/redux/type";
+import { BASE_URL, variableData } from "@/redux/type";
 
 const page = ({ params }: { params: { id: number } }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
+  const onSubmit = async (data: FormData) => {
+    // Client-side submission
+    const response = await fetch(`${BASE_URL}/clients/${params.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      alert("Message sent!");
+    }
+  };
   const [client, setClient] = useState<Record<string, string>>({});
   const showcase = {
     counter_number: "Zählernummer",
@@ -33,10 +51,12 @@ const page = ({ params }: { params: { id: number } }) => {
   }
   return (
     <div className="px-8 py-4">
-      <form action="">
-        <h1 className="text-xl font-semibold mb-5">Client Details:</h1>
-        <div className="flex justify-between items-center">
-          <div className="flex justify-between items-center min-w-[40%] ">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <h1 className="text-xl md:text-2xl font-semibold mb-10">
+          Client Details:
+        </h1>
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="title" className="flex-1">
               Title:
             </label>
@@ -47,7 +67,7 @@ const page = ({ params }: { params: { id: number } }) => {
               className="max-w-[350px]"
             />
           </div>
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="name" className="flex-1">
               Name:
             </label>
@@ -60,8 +80,8 @@ const page = ({ params }: { params: { id: number } }) => {
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
-        <div className="flex justify-between items-center">
-          <div className="flex justify-between items-center min-w-[40%] ">
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="dateofbirth" className="flex-1">
               Geburtsdatum:
             </label>
@@ -72,7 +92,7 @@ const page = ({ params }: { params: { id: number } }) => {
               className="max-w-[350px]"
             />
           </div>
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="company" className="flex-1">
               Firma:
             </label>
@@ -86,8 +106,8 @@ const page = ({ params }: { params: { id: number } }) => {
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
 
-        <div className="flex justify-between items-center">
-          <div className="flex justify-between items-center min-w-[40%] ">
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="street" className="flex-1">
               Straße:
             </label>
@@ -98,7 +118,7 @@ const page = ({ params }: { params: { id: number } }) => {
               className="max-w-[350px]"
             />
           </div>
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="city" className="flex-1">
               Stadt:
             </label>
@@ -111,7 +131,7 @@ const page = ({ params }: { params: { id: number } }) => {
           </div>
         </div>
         <div className="flex justify-between items-center my-6">
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="zip_code" className="flex-1">
               Postleitzahl:
             </label>
@@ -122,7 +142,7 @@ const page = ({ params }: { params: { id: number } }) => {
               className="max-w-[350px]"
             />
           </div>
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="house_num" className="flex-1">
               Hausnummer:
             </label>
@@ -135,8 +155,8 @@ const page = ({ params }: { params: { id: number } }) => {
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
-        <div className="flex justify-between items-center">
-          <div className="flex justify-between items-center min-w-[40%] ">
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="phone" className="flex-1">
               Telefon:
             </label>
@@ -147,7 +167,7 @@ const page = ({ params }: { params: { id: number } }) => {
               className="max-w-[350px]"
             />
           </div>
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="email" className="flex-1">
               Email:
             </label>
@@ -160,7 +180,7 @@ const page = ({ params }: { params: { id: number } }) => {
           </div>
         </div>
         <div className="flex justify-between items-center my-6">
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="assigned_to" className="flex-1">
               Zugewiesen an:
             </label>
@@ -171,7 +191,7 @@ const page = ({ params }: { params: { id: number } }) => {
               className="max-w-[350px]"
             />
           </div>
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="subscriptions" className="flex-1">
               Abonnements:
             </label>
@@ -187,7 +207,7 @@ const page = ({ params }: { params: { id: number } }) => {
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
 
         <div className="flex justify-between items-center my-6">
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="admin_note" className="flex-1">
               Admin-Notiz :
             </label>
@@ -198,7 +218,7 @@ const page = ({ params }: { params: { id: number } }) => {
               className="max-w-[350px]"
             />
           </div>
-          <div className="flex justify-between items-center min-w-[40%] ">
+          <div className="flex justify-between items-center gap-5 min-w-[40%] ">
             <label htmlFor="total" className="flex-1">
               Gesamtprovision:
             </label>
@@ -217,7 +237,7 @@ const page = ({ params }: { params: { id: number } }) => {
         </Button>
       </form>
       <hr className="bg-[#eee] h-[1px] w-full my-6" />
-      <h2>Abonnements</h2>
+      <h2 className="text-xl md:text-2xl font-semibold py-10">Abonnements</h2>
       <DataTableDemo
         data={(client as any).subs.map((sub: any) => {
           return {
@@ -228,7 +248,7 @@ const page = ({ params }: { params: { id: number } }) => {
         showcase={showcase}
         url={"subscriptions"}
       />
-      <h2 className="text-xl font-semibold mb-5">Feedbacks</h2>
+      <h2 className="text-xl md:text-2xl font-semibold py-10">Feedbacks</h2>
 
       <hr className="bg-[#eee] h-[1px] w-full my-6" />
       {(client as any).feedbacks.map((feed: any) => (
