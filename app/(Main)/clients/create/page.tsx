@@ -1,7 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DataTableDemo } from "@/components/ui/table-app";
 import { getClientData, getUsers } from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import { BASE_URL, variableData } from "@/redux/type";
@@ -14,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea"; // Add this import
 import { useAppSelector } from "@/redux/hooks";
 
 interface FormData {
@@ -40,11 +38,8 @@ interface FeedbackFormData {
 
 const Page = ({ params }: { params: { id: number } }) => {
   const { user, loading } = useAppSelector((state) => state.auth);
-  const [client, setClient] = useState<Record<string, any>>({});
   const [users, setUsers] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [feedbacks, setFeedbacks] = useState<any[]>([]); // Separate state for feedbacks
-  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const id = params.id;
   // Main form for client data
   const {
@@ -59,14 +54,6 @@ const Page = ({ params }: { params: { id: number } }) => {
     mode: "onChange",
   });
 
-  // Separate form for feedback
-  const {
-    register: registerFeedback,
-    handleSubmit: handleSubmitFeedback,
-    reset: resetFeedback,
-    formState: { errors: feedbackErrors },
-  } = useForm<FeedbackFormData>();
-
   // Submit main client form
   const onSubmit = async (data: FormData) => {
     try {
@@ -74,15 +61,15 @@ const Page = ({ params }: { params: { id: number } }) => {
         ...data,
         birth_date: data.birth_date ? data.birth_date : null,
       };
-      const response = await axios.put(`${BASE_URL}/clients/${id}`, data, {
+      const response = await axios.post(`${BASE_URL}/clients`, data, {
         withCredentials: true,
         headers: {
           "Content-Type": "application/json",
         },
       });
 
-      if (response.status == 200) {
-        alert("Client data updated successfully!");
+      if (response.status == 201) {
+        alert("Client created successfully!");
         reset(data);
       } else {
         alert("Failed to update client data");
@@ -93,89 +80,19 @@ const Page = ({ params }: { params: { id: number } }) => {
     }
   };
 
-  // Submit new feedback form
-  const onSubmitFeedback = async (data: FeedbackFormData) => {
-    try {
-      setIsSubmittingFeedback(true);
-
-      const response = await axios.post(
-        `${BASE_URL}/feedbacks`, // Adjust URL as needed
-        {
-          ...data,
-          client_id: id, // Link feedback to this client
-          created_at: new Date().toISOString(),
-        },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.status === 201 || response.status === 200) {
-        alert("Feedback added successfully!");
-        resetFeedback(); // Clear the feedback form
-
-        // Refresh feedbacks list
-        const updatedClient = await getClientData(id);
-        setClient(updatedClient);
-        setFeedbacks(updatedClient.feedbacks || []);
-      } else {
-        alert("Failed to add feedback");
-      }
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      alert("Error adding feedback");
-    } finally {
-      setIsSubmittingFeedback(false);
-    }
-  };
-
-  const showcase = {
-    counter_number: "Zählernummer",
-    sub_image: "Vertragsdatum",
-    name: "ERFASSER",
-    start_importing: "Lieferbeginn",
-    end_importing: "Endlieferdatum",
-    status: "Auftr.-Statustext",
-  };
-
   useEffect(() => {
-    async function getClient() {
+    async function getAgents() {
       try {
         setIsLoading(true);
-        const data = await getClientData(id);
-        setClient(data);
-        setFeedbacks(data.feedbacks || []); // Set feedbacks separately
         const users = await getUsers();
         setUsers(users);
-
-        // Reset form with client data when it's loaded
-        if (data) {
-          reset({
-            title: data.title || "",
-            first_name: `${data.first_name || ""}`,
-            family_name: `${data.family_name || ""}`.trim(),
-            birth_date: data.birth_date?.split("T")[0] || null,
-            company_name: data.company_name || "",
-            street: data.street || "",
-            city: data.city || "",
-            zip_code: data.zip_code || "",
-            house_num: data.house_num || "",
-            phone: data.phone || "",
-            email: data.email || "",
-            user_id: parseInt(data.assigned_to?.id) || null,
-            admin_note: data.admin_note || "",
-          });
-        }
       } catch (error) {
         console.error("Error fetching client data:", error);
       } finally {
         setIsLoading(false);
       }
     }
-    getClient();
+    getAgents();
   }, [reset]);
 
   if (isLoading) {
@@ -186,13 +103,8 @@ const Page = ({ params }: { params: { id: number } }) => {
     );
   }
 
-  const totalProvision =
-    client.subscriptions?.reduce((total: number, sub: any) => {
-      return total + (sub.cost || 0);
-    }, 0) || 0;
-
   return (
-    <div className="px-8 py-4">
+    <div className="px-8 py-4  my-5 mx-10 md:mx-0  rounded-2xl">
       <form onSubmit={handleSubmit(onSubmit)}>
         <h1 className="text-xl md:text-2xl font-semibold mb-10">
           Client Details:
@@ -337,7 +249,7 @@ const Page = ({ params }: { params: { id: number } }) => {
               render={({ field }) => (
                 <Select onValueChange={field.onChange}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder={client.assigned_to.name} />
+                    <SelectValue placeholder="Toewijzen aan" />
                   </SelectTrigger>
                   <SelectContent>
                     {users.map((agent: variableData) =>
@@ -353,24 +265,12 @@ const Page = ({ params }: { params: { id: number } }) => {
             />
             <input type="hidden" {...register("user_id")} />
           </div>
-          <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="subscriptions" className="flex-1">
-              Abonnements:
-            </label>
-            <div className="flex justify-center items-center gap-4">
-              {client.subscriptions?.map((sub: any, index: number) => (
-                <div key={index} className="text-sm">
-                  {sub.type?.sub_image || "N/A"}
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
 
         <div className="flex flex-col items-stretch gap-6 md:flex justify-between md:items-center my-6">
-          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+          <div className="flex justify-between items-center gap-5 min-w-[80%] mb-10">
             <label htmlFor="admin_note" className="flex-1">
               Admin-Notiz:
             </label>
@@ -380,18 +280,6 @@ const Page = ({ params }: { params: { id: number } }) => {
               className="max-w-[350px]"
             />
           </div>
-          {(user as any)?.role == "admin" ? (
-            <div className="flex justify-between items-center gap-5 min-w-[40%]">
-              <label htmlFor="total" className="flex-1">
-                Gesamtprovision:
-              </label>
-              <div className="flex justify-center items-center text-lg font-semibold">
-                €{totalProvision.toFixed(2)}
-              </div>
-            </div>
-          ) : (
-            ""
-          )}
         </div>
 
         <Button
@@ -403,83 +291,9 @@ const Page = ({ params }: { params: { id: number } }) => {
               : "bg-gray-400 cursor-not-allowed"
           }`}
         >
-          {isDirty ? "Änderungen speichern" : "keine Änderungen"}
+          {isDirty ? "maken" : "maken"}
         </Button>
       </form>
-
-      <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
-      <h2 className="text-xl md:text-2xl font-semibold py-10">Abonnements</h2>
-      <DataTableDemo
-        data={
-          client.subs?.map((sub: any) => ({
-            ...sub,
-            ...sub.creator,
-          })) || []
-        }
-        showcase={showcase}
-        url={"subscriptions"}
-      />
-
-      <hr className="bg-[#eee] h-[1px] w-full mt-6" />
-      <h2 className="text-xl md:text-2xl font-semibold py-10">Feedbacks</h2>
-      <form
-        onSubmit={handleSubmitFeedback(onSubmitFeedback)}
-        className="flex flex-col justify-between gap-8 items-center w-[80%] lg:flex md:w-[80%] m-auto mb-8 p-6 bg-gray-50 rounded-lg"
-      >
-        <div className="flex justify-between items-center lg:min-w-[70%] gap-4">
-          <label htmlFor="feedback" className="flex-1 text-sm md:font-medium">
-            New Feedback:
-          </label>
-          <Textarea
-            {...registerFeedback("feedback", {
-              required: "Feedback is required",
-              minLength: {
-                value: 5,
-                message: "Feedback must be at least 5 characters",
-              },
-            })}
-            id="feedback"
-            className="max-w-[500px] min-h-[80px]"
-            placeholder="Enter your feedback here..."
-          />
-        </div>
-        <div className="flex justify-between items-center min-w-[20%] gap-4">
-          <Button
-            type="submit"
-            disabled={isSubmittingFeedback}
-            className="bg-[#e4674b] hover:bg-[#d4563a] cursor-pointer"
-          >
-            {isSubmittingFeedback ? "Adding..." : "Add Feedback"}
-          </Button>
-        </div>
-      </form>
-
-      {/* Display validation errors for feedback form */}
-      {feedbackErrors.feedback && (
-        <p className="text-red-500 text-center mb-4">
-          {feedbackErrors.feedback.message}
-        </p>
-      )}
-      {feedbacks?.map((feed: any, index: number) => (
-        <div
-          key={index}
-          className="flex justify-between gap-8 items-center w-[100%] lg:w-[70%] m-auto mb-4 shadow px-6 py-2 rounded-xl"
-        >
-          <div className="flex justify-between items-center min-w-[40%] gap-4">
-            <p className="flex-1 font-medium">Feedback:</p>
-            <p className="max-w-[650px] text-sm lg:text-base">
-              {feed.feedback}
-            </p>
-          </div>
-          <div className="flex justify-between items-center min-w-[40%] gap-4">
-            <p className="flex-1 font-medium">Datum:</p>
-            <p className="max-w-[650px] text-sm lg:text-base">
-              {feed.created_at?.split("T")[0]}
-            </p>
-          </div>
-        </div>
-      ))}
     </div>
   );
 };

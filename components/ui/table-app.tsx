@@ -55,7 +55,10 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
               {Object.keys(showcase).map(
                 (column) =>
                   showcase[column] != "" && (
-                    <TableHead key={showcase[column]} className="capitalize">
+                    <TableHead
+                      key={showcase[column]}
+                      className="capitalize  !max-w-[100px] overflow-ellipsis"
+                    >
                       {showcase[column]}
                     </TableHead>
                   )
@@ -92,11 +95,13 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
                           onClick={() => router.push(`/${url}/${row.id}`)}
                         >
                           {/* You can customize what to display for each dynamic column */}
-                          {row[key] +
-                            " " +
-                            ((row as any)["family_name"] != null
-                              ? (row as any)["family_name"]
-                              : "")}
+                          {row[key] == null
+                            ? " "
+                            : row[key] +
+                              " " +
+                              ((row as any)["family_name"] != null
+                                ? (row as any)["family_name"]
+                                : "")}
                         </TableCell>
                       ) : key == "subscriptions" ? (
                         <TableCell
@@ -105,12 +110,25 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
                         >
                           {row[key].map((sub: any) => sub.type.sub_image)}
                         </TableCell>
+                      ) : key == "feedbacks" ? (
+                        <TableCell
+                          className="text-ellipsis max-w-[20px] whitespace-normal"
+                          key={showcase[key]}
+                          onClick={() => router.push(`/${url}/${row.id}`)}
+                        >
+                          {row[key].length
+                            ? row[key][row[key]?.length - 1].feedback.slice(
+                                0,
+                                10
+                              )
+                            : ""}
+                        </TableCell>
                       ) : (
                         <TableCell
                           key={showcase[key]}
                           onClick={() => router.push(`/${url}/${row.id}`)}
                         >
-                          {data[key]}
+                          {row[key]}
                         </TableCell>
                       ))
                   )}

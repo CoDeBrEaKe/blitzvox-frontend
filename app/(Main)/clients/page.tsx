@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 
 import { variableData } from "@/redux/type";
 import { getClients } from "@/utils/api";
+import Link from "next/link";
 
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
@@ -32,6 +33,7 @@ export default function Home() {
     company_name: "Firma",
     city: "Stadt",
     subscriptions: "Verträge",
+    feedbacks: "Letztes Feedback",
     actions: "actions",
   });
   const [clients, setClients] = useState<variableData[]>([]);
@@ -60,55 +62,70 @@ export default function Home() {
       <div className="px-4 text-2xl font-semibold">
         <h2>Clients</h2>
         <div className="flex items-center py-4">
-          <form
-            className="flex gap-2"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              let filteration = await getClients(`?${filterOn}=${filter}`);
-              setClients(filteration);
-            }}
-          >
-            <Input
-              placeholder="Filter "
-              value={filter}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                setFilter(event.target.value)
-              }
-              className="max-w-sm"
-            />
-
-            <select
-              name="filterOn"
-              id="filterOn"
-              className=" rounded-md border-1 px-2 py-1 font-medium text-sm"
-              aria-placeholder="ksoha"
-              onChange={(e) => {
-                setFilterOn((e as any).target.value);
+          <div className="flex gap-2">
+            <form
+              className="flex gap-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                let filteration = await getClients(`?${filterOn}=${filter}`);
+                setClients(filteration);
               }}
             >
-              {Object.keys(showcase).map(
-                (key) =>
-                  key != "select" &&
-                  key != "actions" && (
-                    <option
-                      value={key}
-                      key={showcase[key]}
-                      className="capitalize"
-                      onSelect={(e) => setFilterOn(key)}
-                    >
-                      {showcase[key]}
-                    </option>
-                  )
-              )}
-            </select>
+              <Input
+                placeholder="Filter "
+                value={filter}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  setFilter(event.target.value)
+                }
+                className="max-w-sm"
+              />
 
-            <Button
-              variant="outline"
-              className="ml-auto cursor-pointer hover:bg-blue-500 hover:text-white"
+              <select
+                name="filterOn"
+                id="filterOn"
+                className="cursor-pointer rounded-md border-1 px-2 py-1 font-medium text-sm"
+                onChange={(e) => {
+                  let v = (e as any).target.value;
+                  if (v == "") {
+                    setFilterOn("");
+                    setFilter("");
+                  }
+                  setFilterOn(v);
+                }}
+              >
+                <option value="" defaultChecked>
+                  Filter
+                </option>
+                {Object.keys(showcase).map(
+                  (key) =>
+                    key != "select" &&
+                    key != "actions" && (
+                      <option
+                        value={key}
+                        key={showcase[key]}
+                        className="capitalize"
+                        onSelect={(e) => setFilterOn(key)}
+                      >
+                        {showcase[key]}
+                      </option>
+                    )
+                )}
+              </select>
+
+              <Button
+                variant="outline"
+                className="ml-auto cursor-pointer hover:bg-blue-500 hover:text-white"
+              >
+                {"Filter"}
+              </Button>
+            </form>
+            <Link
+              href={"/clients/create"}
+              className="ml-auto text-sm text-center font-medium rounded-md flex px-3  items-center  cursor-pointer bg-emerald-800 hover:bg-emerald-800 text-white hover:text-white shadow"
             >
-              {"Filter"}
-            </Button>
-          </form>
+              {"Klant toevoegen"}
+            </Link>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
@@ -116,16 +133,19 @@ export default function Home() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {Object.keys(showcase).map((key) => (
-                <DropdownMenuCheckboxItem
-                  key={key}
-                  className="capitalize"
-                  checked={showcase[key] != "" ? true : false}
-                  onCheckedChange={() => toggleShowcase(key)}
-                >
-                  {showcase[key]}
-                </DropdownMenuCheckboxItem>
-              ))}
+              {Object.keys(showcase).map(
+                (key) =>
+                  key != "select" && (
+                    <DropdownMenuCheckboxItem
+                      key={key}
+                      className="capitalize"
+                      checked={showcase[key] != "" ? true : false}
+                      onCheckedChange={() => toggleShowcase(key)}
+                    >
+                      {showcase[key]}
+                    </DropdownMenuCheckboxItem>
+                  )
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
