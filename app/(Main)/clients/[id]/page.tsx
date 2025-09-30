@@ -21,7 +21,7 @@ interface FormData {
   title: string;
   first_name: string;
   family_name: string;
-  birth_date: string;
+  birth_date: string | null;
   company_name: string;
   street: string;
   city: string;
@@ -45,7 +45,7 @@ const Page = ({ params }: { params: { id: number } }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [feedbacks, setFeedbacks] = useState<any[]>([]); // Separate state for feedbacks
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
-
+  const id = params.id;
   // Main form for client data
   const {
     register,
@@ -66,21 +66,21 @@ const Page = ({ params }: { params: { id: number } }) => {
     reset: resetFeedback,
     formState: { errors: feedbackErrors },
   } = useForm<FeedbackFormData>();
+  console.log(user);
 
   // Submit main client form
   const onSubmit = async (data: FormData) => {
     try {
-      console.log(data.user_id);
-      const response = await axios.put(
-        `${BASE_URL}/clients/${params.id}`,
-        data,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      data = {
+        ...data,
+        birth_date: data.birth_date ? data.birth_date : null,
+      };
+      const response = await axios.put(`${BASE_URL}/clients/${id}`, data, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.status == 200) {
         alert("Client data updated successfully!");
@@ -103,7 +103,7 @@ const Page = ({ params }: { params: { id: number } }) => {
         `${BASE_URL}/feedbacks`, // Adjust URL as needed
         {
           ...data,
-          client_id: params.id, // Link feedback to this client
+          client_id: id, // Link feedback to this client
           created_at: new Date().toISOString(),
         },
         {
@@ -119,7 +119,7 @@ const Page = ({ params }: { params: { id: number } }) => {
         resetFeedback(); // Clear the feedback form
 
         // Refresh feedbacks list
-        const updatedClient = await getClientData(params.id);
+        const updatedClient = await getClientData(id);
         setClient(updatedClient);
         setFeedbacks(updatedClient.feedbacks || []);
       } else {
@@ -146,7 +146,7 @@ const Page = ({ params }: { params: { id: number } }) => {
     async function getClient() {
       try {
         setIsLoading(true);
-        const data = await getClientData(params.id);
+        const data = await getClientData(id);
         setClient(data);
         setFeedbacks(data.feedbacks || []); // Set feedbacks separately
         const users = await getUsers();
@@ -158,7 +158,7 @@ const Page = ({ params }: { params: { id: number } }) => {
             title: data.title || "",
             first_name: `${data.first_name || ""}`,
             family_name: `${data.family_name || ""}`.trim(),
-            birth_date: data.birth_date.split("T")[0] || "",
+            birth_date: data.birth_date?.split("T")[0] || null,
             company_name: data.company_name || "",
             street: data.street || "",
             city: data.city || "",
@@ -177,7 +177,7 @@ const Page = ({ params }: { params: { id: number } }) => {
       }
     }
     getClient();
-  }, [params.id, reset]);
+  }, [reset]);
 
   if (isLoading) {
     return (
@@ -370,7 +370,7 @@ const Page = ({ params }: { params: { id: number } }) => {
 
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
 
-        <div className="flex justify-between items-center my-6">
+        <div className="flex flex-col items-stretch gap-6 md:flex justify-between md:items-center my-6">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="admin_note" className="flex-1">
               Admin-Notiz:
@@ -381,7 +381,7 @@ const Page = ({ params }: { params: { id: number } }) => {
               className="max-w-[350px]"
             />
           </div>
-          {(user as any)?.user.dataValues.role == "admin" ? (
+          {(user as any)?.role == "admin" ? (
             <div className="flex justify-between items-center gap-5 min-w-[40%]">
               <label htmlFor="total" className="flex-1">
                 Gesamtprovision:
@@ -426,10 +426,10 @@ const Page = ({ params }: { params: { id: number } }) => {
       <h2 className="text-xl md:text-2xl font-semibold py-10">Feedbacks</h2>
       <form
         onSubmit={handleSubmitFeedback(onSubmitFeedback)}
-        className="flex justify-between gap-8 items-center w-[70%] m-auto mb-8 p-6 bg-gray-50 rounded-lg"
+        className="flex flex-col justify-between gap-8 items-center w-[80%] lg:flex md:w-[80%] m-auto mb-8 p-6 bg-gray-50 rounded-lg"
       >
-        <div className="flex justify-between items-center min-w-[70%] gap-4">
-          <label htmlFor="feedback" className="flex-1 font-medium">
+        <div className="flex justify-between items-center lg:min-w-[70%] gap-4">
+          <label htmlFor="feedback" className="flex-1 text-sm md:font-medium">
             New Feedback:
           </label>
           <Textarea
@@ -465,15 +465,19 @@ const Page = ({ params }: { params: { id: number } }) => {
       {client.feedbacks?.map((feed: any, index: number) => (
         <div
           key={index}
-          className="flex justify-between gap-8 items-center w-[70%] m-auto mb-4"
+          className="flex justify-between gap-8 items-center w-[100%] lg:w-[70%] m-auto mb-4 shadow px-6 py-2 rounded-xl"
         >
-          <div className="flex justify-between items-center min-w-[30%] gap-4">
+          <div className="flex justify-between items-center min-w-[40%] gap-4">
             <p className="flex-1 font-medium">Feedback:</p>
-            <p className="max-w-[650px] text-small">{feed.feedback}</p>
+            <p className="max-w-[650px] text-sm lg:text-base">
+              {feed.feedback}
+            </p>
           </div>
-          <div className="flex justify-between items-center min-w-[30%] gap-4">
+          <div className="flex justify-between items-center min-w-[40%] gap-4">
             <p className="flex-1 font-medium">Datum:</p>
-            <p className="max-w-[650px]">{feed.created_at?.split("T")[0]}</p>
+            <p className="max-w-[650px] text-sm lg:text-base">
+              {feed.created_at?.split("T")[0]}
+            </p>
           </div>
         </div>
       ))}

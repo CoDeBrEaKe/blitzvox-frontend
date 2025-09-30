@@ -43,6 +43,7 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
       setSelectedRows(new Set(data.map((row) => row.id)));
     }
   };
+
   // Filter data by email
   return (
     <div className="w-full ">
@@ -84,15 +85,34 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
                     (key) =>
                       showcase[key] != "" &&
                       key != "select" &&
-                      key != "actions" && (
+                      key != "actions" &&
+                      (key == "first_name" ? (
                         <TableCell
                           key={showcase[key]}
                           onClick={() => router.push(`/${url}/${row.id}`)}
                         >
                           {/* You can customize what to display for each dynamic column */}
-                          {row[key]}
+                          {row[key] +
+                            " " +
+                            ((row as any)["family_name"] != null
+                              ? (row as any)["family_name"]
+                              : "")}
                         </TableCell>
-                      )
+                      ) : key == "subscriptions" ? (
+                        <TableCell
+                          key={showcase[key]}
+                          onClick={() => router.push(`/${url}/${row.id}`)}
+                        >
+                          {row[key].map((sub: any) => sub.type.sub_image)}
+                        </TableCell>
+                      ) : (
+                        <TableCell
+                          key={showcase[key]}
+                          onClick={() => router.push(`/${url}/${row.id}`)}
+                        >
+                          {data[key]}
+                        </TableCell>
+                      ))
                   )}
                   {showcase.actions && (
                     <TableCell>

@@ -31,6 +31,7 @@ export default function Home() {
     phone: "Telefone",
     company_name: "Firma",
     city: "Stadt",
+    subscriptions: "Verträge",
     actions: "actions",
   });
   const [clients, setClients] = useState<variableData[]>([]);
@@ -75,33 +76,36 @@ export default function Home() {
               }
               className="max-w-sm"
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  {filterOn != "" ? filterOn : "Filter"} <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {Object.keys(showcase).map(
-                  (key) =>
-                    key != "select" &&
-                    key != "actions" && (
-                      <DropdownMenuItem
-                        key={key}
-                        className="capitalize"
-                        onSelect={(e) => {
-                          setFilterOn(key);
 
-                          (e as any)?.target?.value(showcase[key]);
-                        }}
-                      >
-                        {showcase[key]}
-                      </DropdownMenuItem>
-                    )
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button variant="outline" className="ml-auto">
+            <select
+              name="filterOn"
+              id="filterOn"
+              className=" rounded-md border-1 px-2 py-1 font-medium text-sm"
+              aria-placeholder="ksoha"
+              onChange={(e) => {
+                setFilterOn((e as any).target.value);
+              }}
+            >
+              {Object.keys(showcase).map(
+                (key) =>
+                  key != "select" &&
+                  key != "actions" && (
+                    <option
+                      value={key}
+                      key={showcase[key]}
+                      className="capitalize"
+                      onSelect={(e) => setFilterOn(key)}
+                    >
+                      {showcase[key]}
+                    </option>
+                  )
+              )}
+            </select>
+
+            <Button
+              variant="outline"
+              className="ml-auto cursor-pointer hover:bg-blue-500 hover:text-white"
+            >
               {"Filter"}
             </Button>
           </form>
@@ -119,7 +123,7 @@ export default function Home() {
                   checked={showcase[key] != "" ? true : false}
                   onCheckedChange={() => toggleShowcase(key)}
                 >
-                  {key}
+                  {showcase[key]}
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
