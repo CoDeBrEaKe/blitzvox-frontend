@@ -51,9 +51,7 @@ export const loginUser = createAsyncThunk(
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        return rejectWithValue(
-          error.response?.data?.message || error.message || "Login failed"
-        );
+        return rejectWithValue("Login failed");
       }
       return rejectWithValue("An unexpected error occurred");
     }

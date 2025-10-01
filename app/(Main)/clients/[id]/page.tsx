@@ -15,8 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea"; // Add this import
-import { useAppSelector } from "@/redux/hooks";
-
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { clearError } from "@/redux/slices/authSlice";
 interface FormData {
   title: string;
   first_name: string;
@@ -38,14 +38,16 @@ interface FeedbackFormData {
   feedback: string;
 }
 
-const Page = ({ params }: { params: { id: number } }) => {
+const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   const { user, loading } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
   const [client, setClient] = useState<Record<string, any>>({});
   const [users, setUsers] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [feedbacks, setFeedbacks] = useState<any[]>([]); // Separate state for feedbacks
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
-  const id = params.id;
+  const { id } = params;
+
   // Main form for client data
   const {
     register,
@@ -69,27 +71,24 @@ const Page = ({ params }: { params: { id: number } }) => {
 
   // Submit main client form
   const onSubmit = async (data: FormData) => {
-    try {
-      data = {
-        ...data,
-        birth_date: data.birth_date ? data.birth_date : null,
-      };
-      const response = await axios.put(`${BASE_URL}/clients/${id}`, data, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    data = {
+      ...data,
+      birth_date: data.birth_date ? data.birth_date : null,
+    };
+    const response = await axios.put(`${BASE_URL}/clients/${id}`, data, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-      if (response.status == 200) {
-        alert("Client data updated successfully!");
-        reset(data);
-      } else {
-        alert("Failed to update client data");
+    if (response.status == 200) {
+      alert("Client data updated successfully!");
+      reset(data);
+    } else {
+      if (error) {
+        dispatch(clearError());
       }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Error updating client data");
     }
   };
 
@@ -197,7 +196,6 @@ const Page = ({ params }: { params: { id: number } }) => {
         <h1 className="text-xl md:text-2xl font-semibold mb-10">
           Client Details:
         </h1>
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="title" className="flex-1">
@@ -233,7 +231,6 @@ const Page = ({ params }: { params: { id: number } }) => {
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="birth_date" className="flex-1">
@@ -256,9 +253,7 @@ const Page = ({ params }: { params: { id: number } }) => {
             />
           </div>
         </div>
-
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="street" className="flex-1">
@@ -277,7 +272,6 @@ const Page = ({ params }: { params: { id: number } }) => {
             <Input {...register("city")} id="city" className="max-w-[350px]" />
           </div>
         </div>
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="zip_code" className="flex-1">
@@ -300,9 +294,7 @@ const Page = ({ params }: { params: { id: number } }) => {
             />
           </div>
         </div>
-
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="phone" className="flex-1">
@@ -325,7 +317,6 @@ const Page = ({ params }: { params: { id: number } }) => {
             />
           </div>
         </div>
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="user_id" className="flex-1">
@@ -366,10 +357,8 @@ const Page = ({ params }: { params: { id: number } }) => {
             </div>
           </div>
         </div>
-
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
-        <div className="flex flex-col items-stretch gap-6 md:flex justify-between md:items-center my-6">
+        <div className="flex flex-col items-stretch gap-6 md:flex-row  justify-between md:items-center my-6">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="admin_note" className="flex-1">
               Admin-Notiz:
@@ -381,7 +370,7 @@ const Page = ({ params }: { params: { id: number } }) => {
             />
           </div>
           {(user as any)?.role == "admin" ? (
-            <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <div className="flex justify-between items-center gap-5 min-w-[50%]">
               <label htmlFor="total" className="flex-1">
                 Gesamtprovision:
               </label>
@@ -393,11 +382,16 @@ const Page = ({ params }: { params: { id: number } }) => {
             ""
           )}
         </div>
+        {error && (
+          <p className="text-red-500 text-sm font-medium w-full text-center">
+            {error}
+          </p>
+        )}
 
         <Button
           type="submit"
           disabled={!isDirty}
-          className={`self-center text-center mx-auto px-10 py-4 center flex justify-center cursor-pointer rounded-2xl text-xl ${
+          className={`self-center text-center mx-auto px-10 py-4 my-15 center flex justify-center cursor-pointer rounded-2xl text-xl ${
             isDirty
               ? "bg-[#e4674b] hover:bg-[#d4563a]"
               : "bg-gray-400 cursor-not-allowed"
