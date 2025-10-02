@@ -22,3 +22,13 @@ export async function getUsers() {
   });
   return req.data.users;
 }
+
+export async function getClientSubs(query: string = "") {
+  const req: variableData = await axios.get(
+    `${BASE_URL}/client-subscription${query}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return req.data.clientSubs;
+}

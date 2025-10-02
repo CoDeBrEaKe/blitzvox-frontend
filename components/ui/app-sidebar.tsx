@@ -20,13 +20,18 @@ const items = [
     icon: Users,
   },
   {
-    title: "Abonnementdetails",
-    url: "/client-subscriptions",
+    title: "cliëntabonnementen",
+    url: "/client-subscription",
     icon: Verified,
   },
   {
     title: "Abonnements",
     url: "/subscriptions",
+    icon: Verified,
+  },
+  {
+    title: "abonnementstypen",
+    url: "/subscription-types",
     icon: Verified,
   },
   {
