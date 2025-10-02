@@ -424,7 +424,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           })) || []
         }
         showcase={showcase}
-        url={"subscriptions"}
+        url={"client-subscription"}
       />
 
       <hr className="bg-[#eee] h-[1px] w-full mt-6" />

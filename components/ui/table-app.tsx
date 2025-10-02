@@ -105,12 +105,10 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
                         </TableCell>
                       ) : key == "subscriptions" ? (
                         <TableCell
-                          key={row[key]}
+                          key={showcase[key]}
                           onClick={() => router.push(`/${url}/${row.id}`)}
                         >
-                          {row[key].map((sub: any) => (
-                            <img src="" />
-                          ))}
+                          {row[key].map((sub: any) => sub.type.sub_image)}
                         </TableCell>
                       ) : key == "feedbacks" ? (
                         <TableCell
@@ -125,8 +123,6 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
                               )
                             : ""}
                         </TableCell>
-                      ) : key == "sub_type" ? (
-                        ""
                       ) : (
                         <TableCell
                           key={showcase[key]}

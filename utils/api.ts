@@ -32,3 +32,12 @@ export async function getClientSubs(query: string = "") {
   );
   return req.data.clientSubs;
 }
+export async function getClientSubData(id: number) {
+  const req: variableData = await axios.get(
+    `${BASE_URL}/client-subscription/${id}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return req.data.clientSub;
+}

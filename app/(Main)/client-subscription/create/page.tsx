@@ -1,46 +1,47 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getClientData, getUsers } from "@/utils/api";
 import React, { useEffect, useState } from "react";
-import { BASE_URL, variableData } from "@/redux/type";
-import { useForm, Controller } from "react-hook-form";
+import { BASE_URL } from "@/redux/type";
+import { useForm } from "react-hook-form";
 import axios from "axios";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { useAppSelector } from "@/redux/hooks";
 
 interface FormData {
-  title: string;
-  first_name: string;
-  family_name: string;
-  birth_date: string | null;
-  company_name: string;
-  street: string;
-  city: string;
-  zip_code: string;
-  house_num: string;
-  phone: string;
-  email: string;
-  user_id: number | null;
-  admin_note: string;
+  order_num: string;
+  your_order_num: string;
+  cost: string;
+  status: string | null;
+  counter_number: string;
+  consumption: string;
+  night_consumption: string;
+  paid: boolean;
+  paid_date: string;
+  rl: boolean;
+  rl_date: string;
+  termination_date: number | null;
+  restablish_date: string;
+  sign_date: string;
+  start_importing: string;
+  end_importing: string;
+  contract_end: string;
+  contract_time: string;
+  family_count: string;
+  person_num: string;
+  persons_name: string;
+  documents_link: string;
 }
 
-// New interface for feedback form
-interface FeedbackFormData {
-  feedback: string;
-}
-
-const Page = ({ params }: { params: { id: number } }) => {
-  const { user, loading } = useAppSelector((state) => state.auth);
-  const [users, setUsers] = useState<Record<string, any>>({});
+const Page = ({ params }: { params: Promise<{ id: number }> }) => {
+  const [clientSub, setClientSub] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const id = params.id;
+  const [pageState, setPageState] = useState({
+    error: "",
+    success: "",
+  });
+  const { id } = React.use(params);
+
   // Main form for client data
   const {
     register,
@@ -56,44 +57,33 @@ const Page = ({ params }: { params: { id: number } }) => {
 
   // Submit main client form
   const onSubmit = async (data: FormData) => {
+    data = {
+      ...data,
+    };
     try {
-      data = {
-        ...data,
-        birth_date: data.birth_date ? data.birth_date : null,
-      };
-      const response = await axios.post(`${BASE_URL}/clients`, data, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.status == 201) {
-        alert("Client created successfully!");
+      const response = await axios.put(
+        `${BASE_URL}/client-subscription`,
+        data,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.status == 200 || response.status == 201) {
+        setPageState({
+          ...pageState,
+          success: "Abbointe succesvol bijgewerkt",
+          error: "",
+        });
         reset(data);
-      } else {
-        alert("Failed to update client data");
       }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Error updating client data");
+    } catch (e: any) {
+      setPageState({ ...pageState, error: e.response.data.message });
+      console.error();
     }
   };
-
-  useEffect(() => {
-    async function getAgents() {
-      try {
-        setIsLoading(true);
-        const users = await getUsers();
-        setUsers(users);
-      } catch (error) {
-        console.error("Error fetching client data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    getAgents();
-  }, [reset]);
 
   if (isLoading) {
     return (
@@ -104,194 +94,280 @@ const Page = ({ params }: { params: { id: number } }) => {
   }
 
   return (
-    <div className="px-8 py-4  my-5 mx-10 md:mx-0  rounded-2xl">
+    <div className="px-8 py-4">
       <form onSubmit={handleSubmit(onSubmit)}>
         <h1 className="text-xl md:text-2xl font-semibold mb-10">
-          Client Details:
+          Verträgedetails:
         </h1>
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="title" className="flex-1">
-              Title:
+            <label htmlFor="order_num" className="flex-1">
+              Auftr.-Nr.:
             </label>
             <Input
-              {...register("title")}
-              id="title"
-              className="max-w-[350px]"
-            />
-          </div>
-          <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="first_name" className="flex-1">
-              Vorname:
-            </label>
-            <Input
-              {...register("first_name")}
-              id="first_name"
+              id="order_num"
+              value={clientSub.order_num}
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
         </div>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%] mt-6">
-            <label htmlFor="family_name" className="flex-1">
-              Nachname:
+            <label htmlFor="your_order_num" className="flex-1">
+              Ihre Auftr.-Nr.:
             </label>
             <Input
-              {...register("family_name")}
               id="family_name"
+              value={clientSub.your_order_num}
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="birth_date" className="flex-1">
-              Geburtsdatum:
-            </label>
-            <Input
-              {...register("birth_date")}
-              id="birth_date"
-              className="max-w-[350px]"
-            />
-          </div>
-          <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="company_name" className="flex-1">
-              Firma:
+              Abo-Typ:
             </label>
             <Input
-              {...register("company_name")}
-              id="company_name"
+              value={clientSub["subscription.type.sub_type"]}
               className="max-w-[350px]"
             />
           </div>
         </div>
-
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="street" className="flex-1">
-              Straße:
+              Unterschriftsdatum”:
             </label>
             <Input
-              {...register("street")}
+              value={clientSub["sign_date"]?.split("T")[0]}
               id="street"
               className="max-w-[350px]"
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="city" className="flex-1">
-              Stadt:
+              Tarif/Produkt:
             </label>
-            <Input {...register("city")} id="city" className="max-w-[350px]" />
+            <Input
+              id="city"
+              value={clientSub["subscription.sub_name"]}
+              className="max-w-[350px]"
+            />
           </div>
         </div>
+        <hr className="bg-[#eee] h-[1px] w-full my-6" />
 
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="zip_code" className="flex-1">
-              Postleitzahl:
+            <label htmlFor="status" className="flex-1">
+              Auftr.-Statustext:
             </label>
             <Input
-              {...register("zip_code")}
-              id="zip_code"
+              id="status"
+              {...register("status")}
               className="max-w-[350px]"
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="house_num" className="flex-1">
-              Hausnummer:
+            <label htmlFor="counter_number" className="flex-1">
+              Zählernummer:
             </label>
             <Input
-              {...register("house_num")}
-              id="house_num"
+              id="counter_number"
+              {...register("counter_number")}
               className="max-w-[350px]"
             />
           </div>
         </div>
-
-        <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="phone" className="flex-1">
-              Telefon:
+            <label htmlFor="termination_date" className="flex-1">
+              Termination Date:
             </label>
             <Input
-              {...register("phone")}
-              id="phone"
+              {...register("termination_date")}
+              id="termination_date"
               className="max-w-[350px]"
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="email" className="flex-1">
-              Email:
+            <label htmlFor="restablish_date" className="flex-1">
+              Restablish Date:
             </label>
             <Input
-              {...register("email")}
-              id="email"
+              {...register("restablish_date")}
+              id="restablish_date"
               className="max-w-[350px]"
             />
           </div>
         </div>
+        <hr className="bg-[#eee] h-[1px] w-full my-6" />
 
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="user_id" className="flex-1">
-              Zugewiesen an:
-            </label>
-            <Controller
-              name="user_id"
-              control={control}
-              render={({ field }) => (
-                <Select onValueChange={field.onChange}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Toewijzen aan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((agent: variableData) =>
-                      agent.role === "agent" ? (
-                        <SelectItem key={agent.id} value={agent.id.toString()}>
-                          {agent.name}
-                        </SelectItem>
-                      ) : null
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            <input type="hidden" {...register("user_id")} />
-          </div>
-        </div>
-
-        <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
-        <div className="flex flex-col items-stretch gap-6 md:flex justify-between md:items-center my-6">
-          <div className="flex justify-between items-center gap-5 min-w-[80%] mb-10">
-            <label htmlFor="admin_note" className="flex-1">
-              Admin-Notiz:
+            <label htmlFor="consumption" className="flex-1">
+              Verbrauch:
             </label>
             <Input
-              {...register("admin_note")}
-              id="admin_note"
+              {...register("consumption")}
+              id="consumption"
+              className="max-w-[350px]"
+            />
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="night_consumption" className="flex-1">
+              Verbrauch NT:
+            </label>
+            <Input
+              {...register("night_consumption")}
+              id="night_consumption"
               className="max-w-[350px]"
             />
           </div>
         </div>
+        <hr className="bg-[#eee] h-[1px] w-full my-6" />
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="start_importing" className="flex-1">
+              Lieferbeginn:
+            </label>
+            <Input
+              {...register("start_importing")}
+              id="start_importing"
+              className="max-w-[350px]"
+            />
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="end_importing" className="flex-1">
+              Endlieferdatum :
+            </label>
+            <Input
+              {...register("end_importing")}
+              id="end_importing"
+              className="max-w-[350px]"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="contract_time" className="flex-1">
+              Vertragsdauer:
+            </label>
+            <select
+              {...register("contract_time")}
+              id="contract_time"
+              className="max-w-[350px]"
+            >
+              <option
+                value="1 Year"
+                selected={clientSub.contract_time == "1 Year"}
+              >
+                Ein Jahr
+              </option>
+              <option
+                value="2 Years"
+                selected={clientSub.contract_time == "2 Years"}
+              >
+                zwei Jahr
+              </option>
+            </select>
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="cost" className="flex-1">
+              Provision:
+            </label>
+            <Input {...register("cost")} id="cost" className="max-w-[350px]" />
+          </div>
+        </div>
+        <hr className="bg-[#eee] h-[1px] w-full my-6" />
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="paid" className="flex-1">
+              VAP:
+            </label>
+            <select {...register("paid")} id="paid" className="max-w-[350px]">
+              <option value={"true"} selected={clientSub.paid == "true"}>
+                Yes
+              </option>
+              <option value={"false"} selected={clientSub.paid == "false"}>
+                No
+              </option>
+            </select>
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="paid_date" className="flex-1">
+              VAP DATUM:
+            </label>
+            <Input
+              {...register("paid_date")}
+              id="paid_date"
+              className="max-w-[350px]"
+            />
+          </div>
+        </div>
+        <hr className="bg-[#eee] h-[1px] w-full my-6" />
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="rl" className="flex-1">
+              RL:
+            </label>
+            <select {...register("rl")} id="rl" className="max-w-[350px]">
+              <option value={"true"} selected={clientSub.paid == "true"}>
+                Yes
+              </option>
+              <option value={"false"} selected={clientSub.paid == "false"}>
+                No
+              </option>
+            </select>
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="rl_date" className="flex-1">
+              RL DATUM:
+            </label>
+            <Input
+              {...register("rl_date")}
+              id="rl_date"
+              className="max-w-[350px] "
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-center my-20">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="documents_link" className="flex-1">
+              Dokumente hochladen:
+            </label>
+            <Input
+              // {...register("documents_link")}
+              id="documents_link"
+              type="file"
+              className="max-w-[350px]"
+            />
+          </div>
+        </div>
+        {pageState.error && (
+          <p className="text-red-500 text-sm font-medium w-full text-center">
+            {pageState.error}
+          </p>
+        )}
+        {pageState.success && (
+          <p className="text-green-500 text-sm font-medium w-full text-center">
+            {pageState.success}
+          </p>
+        )}
 
         <Button
           type="submit"
           disabled={!isDirty}
-          className={`self-center text-center mx-auto px-10 py-4 center flex justify-center cursor-pointer rounded-2xl text-xl ${
+          className={`self-center text-center mx-auto px-10 py-4 my-15 center flex justify-center cursor-pointer rounded-2xl text-xl ${
             isDirty
               ? "bg-[#e4674b] hover:bg-[#d4563a]"
               : "bg-gray-400 cursor-not-allowed"
           }`}
         >
-          {isDirty ? "maken" : "maken"}
+          {isDirty ? "Änderungen speichern" : "keine Änderungen"}
         </Button>
       </form>
     </div>

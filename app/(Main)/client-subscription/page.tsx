@@ -27,12 +27,12 @@ export default function Home() {
 
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "select",
-    first_name: "Name",
+    "client.first_name": "Name",
     your_order_num: "Ihre Auftr.-Nr.",
     sign_date: "Unterschriftsdatum",
-    // sub_type: "Tarif/Produkt",
+    "subscription.sub_name": "Tarif/Produkt",
     counter_number: "Zählernummer",
-    // subscriptions: "Verträge",
+    "subscription.type.sub_image": "Verträge",
     actions: "actions",
   });
   const [clientSubs, setClientsSubs] = useState<variableData[]>([]);
@@ -40,7 +40,6 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       const clientsData = await getClientSubs();
-      console.log([...clientsData]);
       setClientsSubs([...clientsData]);
     };
     fetchData();
@@ -60,7 +59,7 @@ export default function Home() {
   return (
     <>
       <div className="px-4 text-2xl font-semibold">
-        <h2>Clients</h2>
+        <h2>cliëntabonnementen</h2>
         <div className="flex items-center py-4">
           <div className="flex gap-2">
             <form
@@ -120,7 +119,7 @@ export default function Home() {
               </Button>
             </form>
             <Link
-              href={"/clients/create"}
+              href={"/client-subscription/create"}
               className="ml-auto text-sm text-center font-medium rounded-md flex px-3  items-center  cursor-pointer bg-emerald-800 hover:bg-emerald-800 text-white hover:text-white shadow"
             >
               {"Klant toevoegen"}

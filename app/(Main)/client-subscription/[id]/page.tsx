@@ -1,94 +1,79 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DataTableDemo } from "@/components/ui/table-app";
-import { getClientData, getUsers } from "@/utils/api";
+import { getClientSubData, getUsers } from "@/utils/api";
 import React, { useEffect, useState } from "react";
-import { BASE_URL, variableData } from "@/redux/type";
-import { useForm, Controller } from "react-hook-form";
+import { BASE_URL } from "@/redux/type";
+import { useForm } from "react-hook-form";
 import axios from "axios";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea"; // Add this import
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
 interface FormData {
-  title: string;
-  first_name: string;
-  family_name: string;
-  birth_date: string | null;
-  company_name: string;
-  street: string;
-  city: string;
-  zip_code: string;
-  house_num: string;
-  phone: string;
-  email: string;
-  user_id: number | null;
-  admin_note: string;
-}
-
-// New interface for feedback form
-interface FeedbackFormData {
-  feedback: string;
+  order_num: string;
+  your_order_num: string;
+  cost: string;
+  status: string | null;
+  counter_number: string;
+  consumption: string;
+  night_consumption: string;
+  paid: string | boolean;
+  paid_date: string;
+  rl: string | boolean;
+  rl_date: string;
+  termination_date: number | null;
+  restablish_date: string;
+  sign_date: string;
+  start_importing: string;
+  end_importing: string;
+  contract_end: string;
+  contract_time: string;
+  family_count: string;
+  person_num: string;
+  persons_name: string;
+  documents_link: string;
 }
 
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
-  const { user, loading } = useAppSelector((state) => state.auth);
-  const [client, setClient] = useState<Record<string, any>>({});
-  const [users, setUsers] = useState<Record<string, any>>({});
+  const [clientSub, setClientSub] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [pageState, setPageState] = useState({
     error: "",
     success: "",
   });
-  const [feedbacks, setFeedbacks] = useState<any[]>([]); // Separate state for feedbacks
-  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const { id } = React.use(params);
 
   // Main form for client data
   const {
     register,
     handleSubmit,
-    control,
-    setValue,
+
     formState: { errors, isDirty, isValid },
     reset,
-    watch,
   } = useForm<FormData>({
     mode: "onChange",
   });
-
-  // Separate form for feedback
-  const {
-    register: registerFeedback,
-    handleSubmit: handleSubmitFeedback,
-    reset: resetFeedback,
-    formState: { errors: feedbackErrors },
-  } = useForm<FeedbackFormData>();
 
   // Submit main client form
   const onSubmit = async (data: FormData) => {
     data = {
       ...data,
-      birth_date: data.birth_date ? data.birth_date : null,
+      rl: data.rl == "true" ? true : false,
+      paid: data.paid == "true" ? true : false,
     };
     try {
-      const response = await axios.put(`${BASE_URL}/clients/${id}`, data, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.status == 200) {
+      const response = await axios.put(
+        `${BASE_URL}/client-subscription/${id}`,
+        data,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.status == 200 || response.status == 201) {
         setPageState({
           ...pageState,
-          success: "Cliënt succesvol bijgewerkt",
+          success: "Abbointe succesvol bijgewerkt",
           error: "",
         });
         reset(data);
@@ -99,80 +84,38 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     }
   };
 
-  // Submit new feedback form
-  const onSubmitFeedback = async (data: FeedbackFormData) => {
-    try {
-      setIsSubmittingFeedback(true);
-
-      const response = await axios.post(
-        `${BASE_URL}/feedbacks`, // Adjust URL as needed
-        {
-          ...data,
-          client_id: id, // Link feedback to this client
-          created_at: new Date().toISOString(),
-        },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.status === 201 || response.status === 200) {
-        alert("Feedback added sucessfully!");
-        resetFeedback(); // Clear the feedback form
-
-        // Refresh feedbacks list
-        const updatedClient = await getClientData(id);
-        setClient(updatedClient);
-        setFeedbacks(updatedClient.feedbacks || []);
-      } else {
-        alert("Failed to add feedback");
-      }
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      alert("Error adding feedback");
-    } finally {
-      setIsSubmittingFeedback(false);
-    }
-  };
-
-  const showcase = {
-    counter_number: "Zählernummer",
-    sub_image: "Vertragsdatum",
-    name: "ERFASSER",
-    start_importing: "Lieferbeginn",
-    end_importing: "Endlieferdatum",
-    status: "Auftr.-Statustext",
-  };
-
   useEffect(() => {
-    async function getClient() {
+    async function getClientsub() {
       try {
         setIsLoading(true);
-        const data = await getClientData(id);
-        setClient(data);
-        setFeedbacks(data.feedbacks || []); // Set feedbacks separately
-        const users = await getUsers();
-        setUsers(users);
+        const data = await getClientSubData(id);
+        setClientSub(data);
 
         // Reset form with client data when it's loaded
         if (data) {
           reset({
-            title: data.title || "",
-            first_name: `${data.first_name || ""}`,
-            family_name: `${data.family_name || ""}`.trim(),
-            birth_date: data.birth_date?.split("T")[0] || null,
-            company_name: data.company_name || "",
-            street: data.street || "",
-            city: data.city || "",
-            zip_code: data.zip_code || "",
-            house_num: data.house_num || "",
-            phone: data.phone || "",
-            email: data.email || "",
-            user_id: parseInt(data.assigned_to?.id) || null,
-            admin_note: data.admin_note || "",
+            order_num: data.order_num || "",
+            your_order_num: data.your_order_num || "",
+            cost: data.cost || "",
+            status: data.status || null,
+            counter_number: data.counter_number || "",
+            consumption: data.consumption || "",
+            night_consumption: data.night_consumption || "",
+            paid: data.paid,
+            paid_date: data.paid_date?.split("T")[0] || "",
+            rl: data.rl,
+            rl_date: data.rl_date?.split("T")[0] || "",
+            termination_date: data.termination_date?.split("T")[0] || null,
+            restablish_date: data.restablish_date?.split("T")[0] || "",
+            sign_date: data.sign_date?.split("T")[0] || "",
+            start_importing: data.start_importing?.split("T")[0] || "",
+            end_importing: data.end_importing?.split("T")[0] || "",
+            contract_end: data.contract_end?.split("T")[0] || "",
+            contract_time: data.contract_time || "",
+            family_count: data.family_count || "",
+            person_num: data.person_num || "",
+            persons_name: data.persons_name || "",
+            documents_link: data.documents_link || "",
           });
         }
       } catch (error) {
@@ -181,7 +124,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         setIsLoading(false);
       }
     }
-    getClient();
+    getClientsub();
   }, [reset]);
 
   if (isLoading) {
@@ -192,47 +135,48 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     );
   }
 
-  const totalProvision =
-    client.subscriptions?.reduce((total: number, sub: any) => {
-      return total + (sub.cost || 0);
-    }, 0) || 0;
-
   return (
     <div className="px-8 py-4">
       <form onSubmit={handleSubmit(onSubmit)}>
         <h1 className="text-xl md:text-2xl font-semibold mb-10">
-          Client Details:
+          Verträgedetails:
         </h1>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="title" className="flex-1">
-              Title:
+            <label htmlFor="name" className="flex-1">
+              Name:
             </label>
             <Input
-              {...register("title")}
+              disabled
               id="title"
+              value={
+                clientSub["client.first_name"] +
+                (clientSub["client.family_name"]
+                  ? clientSub["client.family_name"]
+                  : "")
+              }
               className="max-w-[350px]"
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="first_name" className="flex-1">
-              Vorname:
+            <label htmlFor="order_num" className="flex-1">
+              Auftr.-Nr.:
             </label>
             <Input
-              {...register("first_name")}
-              id="first_name"
+              id="order_num"
+              {...register("order_num")}
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
         </div>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%] mt-6">
-            <label htmlFor="family_name" className="flex-1">
-              Nachname:
+            <label htmlFor="your_order_num" className="flex-1">
+              Ihre Auftr.-Nr.:
             </label>
             <Input
-              {...register("family_name")}
               id="family_name"
+              {...register("your_order_num")}
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
@@ -240,22 +184,21 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="birth_date" className="flex-1">
-              Geburtsdatum:
+            <label htmlFor="creator" className="flex-1">
+              Ersteller:
             </label>
             <Input
-              {...register("birth_date")}
-              id="birth_date"
+              value={clientSub["creator.name"]}
+              disabled
               className="max-w-[350px]"
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="company_name" className="flex-1">
-              Firma:
+              Abo-Typ:
             </label>
             <Input
-              {...register("company_name")}
-              id="company_name"
+              value={clientSub["subscription.type.sub_type"]}
               className="max-w-[350px]"
             />
           </div>
@@ -264,130 +207,213 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="street" className="flex-1">
-              Straße:
+              Unterschriftsdatum”:
             </label>
             <Input
-              {...register("street")}
+              {...register("your_order_num")}
               id="street"
               className="max-w-[350px]"
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="city" className="flex-1">
-              Stadt:
-            </label>
-            <Input {...register("city")} id="city" className="max-w-[350px]" />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
-          <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="zip_code" className="flex-1">
-              Postleitzahl:
+              Tarif/Produkt:
             </label>
             <Input
-              {...register("zip_code")}
-              id="zip_code"
-              className="max-w-[350px]"
-            />
-          </div>
-          <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="house_num" className="flex-1">
-              Hausnummer:
-            </label>
-            <Input
-              {...register("house_num")}
-              id="house_num"
+              id="city"
+              value={clientSub["subscription.sub_name"]}
               className="max-w-[350px]"
             />
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
+
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="status" className="flex-1">
+              Auftr.-Statustext:
+            </label>
+            <Input
+              id="status"
+              {...register("status")}
+              className="max-w-[350px]"
+            />
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="counter_number" className="flex-1">
+              Zählernummer:
+            </label>
+            <Input
+              id="counter_number"
+              {...register("counter_number")}
+              className="max-w-[350px]"
+            />
+          </div>
+        </div>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="phone" className="flex-1">
-              Telefon:
+            <label htmlFor="termination_date" className="flex-1">
+              Termination Date:
             </label>
             <Input
-              {...register("phone")}
-              id="phone"
+              {...register("termination_date")}
+              id="termination_date"
               className="max-w-[350px]"
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="email" className="flex-1">
-              Email:
+            <label htmlFor="restablish_date" className="flex-1">
+              Restablish Date:
             </label>
             <Input
-              {...register("email")}
-              id="email"
+              {...register("restablish_date")}
+              id="restablish_date"
+              className="max-w-[350px]"
+            />
+          </div>
+        </div>
+        <hr className="bg-[#eee] h-[1px] w-full my-6" />
+
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="consumption" className="flex-1">
+              Verbrauch:
+            </label>
+            <Input
+              {...register("consumption")}
+              id="consumption"
+              className="max-w-[350px]"
+            />
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="night_consumption" className="flex-1">
+              Verbrauch NT:
+            </label>
+            <Input
+              {...register("night_consumption")}
+              id="night_consumption"
+              className="max-w-[350px]"
+            />
+          </div>
+        </div>
+        <hr className="bg-[#eee] h-[1px] w-full my-6" />
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="start_importing" className="flex-1">
+              Lieferbeginn:
+            </label>
+            <Input
+              {...register("start_importing")}
+              id="start_importing"
+              className="max-w-[350px]"
+            />
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="end_importing" className="flex-1">
+              Endlieferdatum :
+            </label>
+            <Input
+              {...register("end_importing")}
+              id="end_importing"
               className="max-w-[350px]"
             />
           </div>
         </div>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="user_id" className="flex-1">
-              Zugewiesen an:
+            <label htmlFor="contract_time" className="flex-1">
+              Vertragsdauer:
             </label>
-            <Controller
-              name="user_id"
-              control={control}
-              render={({ field }) => (
-                <Select onValueChange={field.onChange}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder={client.assigned_to.name} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((agent: variableData) =>
-                      agent.role === "agent" ? (
-                        <SelectItem key={agent.id} value={agent.id.toString()}>
-                          {agent.name}
-                        </SelectItem>
-                      ) : null
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            <input type="hidden" {...register("user_id")} />
+            <select
+              {...register("contract_time")}
+              id="contract_time"
+              className="max-w-[350px]"
+            >
+              <option
+                value="1 Year"
+                selected={clientSub.contract_time == "1 Year"}
+              >
+                Ein Jahr
+              </option>
+              <option
+                value="2 Years"
+                selected={clientSub.contract_time == "2 Years"}
+              >
+                zwei Jahr
+              </option>
+            </select>
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="subscriptions" className="flex-1">
-              Abonnements:
+            <label htmlFor="cost" className="flex-1">
+              Provision:
             </label>
-            <div className="flex justify-center items-center gap-4">
-              {client.subscriptions?.map((sub: any, index: number) => (
-                <div key={index} className="text-sm">
-                  {sub.type?.sub_image || "N/A"}
-                </div>
-              ))}
-            </div>
+            <Input {...register("cost")} id="cost" className="max-w-[350px]" />
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
-        <div className="flex flex-col items-stretch gap-6 md:flex-row  justify-between md:items-center my-6">
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="admin_note" className="flex-1">
-              Admin-Notiz:
+            <label htmlFor="paid" className="flex-1">
+              VAP:
+            </label>
+            <select {...register("paid")} id="paid" className="max-w-[350px]">
+              <option value={"true"} selected={clientSub.paid == "true"}>
+                Yes
+              </option>
+              <option value={"false"} selected={clientSub.paid == "false"}>
+                No
+              </option>
+            </select>
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="paid_date" className="flex-1">
+              VAP DATUM:
             </label>
             <Input
-              {...register("admin_note")}
-              id="admin_note"
+              {...register("paid_date")}
+              id="paid_date"
               className="max-w-[350px]"
             />
           </div>
-          {(user as any)?.role == "admin" ? (
-            <div className="flex justify-between items-center gap-5 min-w-[50%]">
-              <label htmlFor="total" className="flex-1">
-                Gesamtprovision:
-              </label>
-              <div className="flex justify-center items-center text-lg font-semibold">
-                €{totalProvision.toFixed(2)}
-              </div>
-            </div>
-          ) : (
-            ""
-          )}
+        </div>
+        <hr className="bg-[#eee] h-[1px] w-full my-6" />
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="rl" className="flex-1">
+              RL:
+            </label>
+            <select {...register("rl")} id="rl" className="max-w-[350px]">
+              <option value={"true"} selected={clientSub.rl == "true"}>
+                Yes
+              </option>
+              <option value={"false"} selected={clientSub.rl == "false"}>
+                No
+              </option>
+            </select>
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="rl_date" className="flex-1">
+              RL DATUM:
+            </label>
+            <Input
+              {...register("rl_date")}
+              id="rl_date"
+              className="max-w-[350px] "
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-center my-20">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="documents_link" className="flex-1">
+              Dokumente hochladen:
+            </label>
+            <Input
+              // {...register("documents_link")}
+              id="documents_link"
+              type="file"
+              className="max-w-[350px]"
+            />
+          </div>
         </div>
         {pageState.error && (
           <p className="text-red-500 text-sm font-medium w-full text-center">
@@ -412,80 +438,6 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           {isDirty ? "Änderungen speichern" : "keine Änderungen"}
         </Button>
       </form>
-
-      <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
-      <h2 className="text-xl md:text-2xl font-semibold py-10">Abonnements</h2>
-      <DataTableDemo
-        data={
-          client.subs?.map((sub: any) => ({
-            ...sub,
-            ...sub.creator,
-          })) || []
-        }
-        showcase={showcase}
-        url={"subscriptions"}
-      />
-
-      <hr className="bg-[#eee] h-[1px] w-full mt-6" />
-      <h2 className="text-xl md:text-2xl font-semibold py-10">Feedbacks</h2>
-      <form
-        onSubmit={handleSubmitFeedback(onSubmitFeedback)}
-        className="flex flex-col justify-between gap-8 items-center w-[80%] lg:flex md:w-[80%] m-auto mb-8 p-6 bg-gray-50 rounded-lg"
-      >
-        <div className="flex justify-between items-center lg:min-w-[70%] gap-4">
-          <label htmlFor="feedback" className="flex-1 text-sm md:font-medium">
-            New Feedback:
-          </label>
-          <Textarea
-            {...registerFeedback("feedback", {
-              required: "Feedback is required",
-              minLength: {
-                value: 5,
-                message: "Feedback must be at least 5 characters",
-              },
-            })}
-            id="feedback"
-            className="max-w-[500px] min-h-[80px]"
-            placeholder="Enter your feedback here..."
-          />
-        </div>
-        <div className="flex justify-between items-center min-w-[20%] gap-4">
-          <Button
-            type="submit"
-            disabled={isSubmittingFeedback}
-            className="bg-[#e4674b] hover:bg-[#d4563a] cursor-pointer"
-          >
-            {isSubmittingFeedback ? "Adding..." : "Add Feedback"}
-          </Button>
-        </div>
-      </form>
-
-      {/* Display validation errors for feedback form */}
-      {feedbackErrors.feedback && (
-        <p className="text-red-500 text-center mb-4">
-          {feedbackErrors.feedback.message}
-        </p>
-      )}
-      {feedbacks?.map((feed: any, index: number) => (
-        <div
-          key={index}
-          className="flex justify-between gap-8 items-center w-[100%] lg:w-[70%] m-auto mb-4 shadow px-6 py-2 rounded-xl"
-        >
-          <div className="flex justify-between items-center min-w-[40%] gap-4">
-            <p className="flex-1 font-medium">Feedback:</p>
-            <p className="max-w-[650px] text-sm lg:text-base">
-              {feed.feedback}
-            </p>
-          </div>
-          <div className="flex justify-between items-center min-w-[40%] gap-4">
-            <p className="flex-1 font-medium">Datum:</p>
-            <p className="max-w-[650px] text-sm lg:text-base">
-              {feed.created_at?.split("T")[0]}
-            </p>
-          </div>
-        </div>
-      ))}
     </div>
   );
 };

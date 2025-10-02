@@ -60,7 +60,7 @@ export default function Home() {
   return (
     <>
       <div className="px-4 text-2xl font-semibold">
-        <h2>Clients</h2>
+        <h2>Kunden</h2>
         <div className="flex items-center py-4">
           <div className="flex gap-2">
             <form
