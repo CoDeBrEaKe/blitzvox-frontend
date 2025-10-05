@@ -7,61 +7,37 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-import { variableData } from "@/redux/type";
-import { getClients } from "@/utils/api";
 import Link from "next/link";
-import { paginationType } from "@/redux/type";
+import { variableData } from "@/redux/type";
+import { getEmails, getSubscriptionTypes, getUsers } from "@/utils/api";
+import { useAppSelector } from "@/redux/hooks";
+
 export default function Home() {
+  const { user } = useAppSelector((state) => state.auth);
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 10,
-    totalItems: 0,
-    itemsPerPage: 10,
-    hasNext: false,
-    hasPrev: false,
-  });
 
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "select",
-    first_name: "Name",
-    email: "E-mail",
-    phone: "Telefone",
-    company_name: "Firma",
-    city: "Stadt",
-    subscriptions: "Verträge",
-    feedbacks: "Letztes Feedback",
+    subject: "E-mailonderwerp",
+    content: "E-mailinhoud",
     actions: "actions",
   });
-  const [clients, setClients] = useState<variableData[]>([]);
+  const [emails, setEmails] = useState<variableData[]>([]);
 
   useEffect(() => {
-    const fetchClients = async () => {
-      const clientsData = await getClients("", {
-        page: pagination.currentPage,
-        limit: 10,
-      });
-      setClients([...clientsData.clients]);
-      setPagination({ ...clientsData.pagination });
+    const fetchData = async () => {
+      const emails = await getEmails();
+      setEmails([...emails]);
     };
-    fetchClients();
+    fetchData();
   }, []);
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
-    }
-  };
 
   const toggleShowcase = (column: string) => {
     setShowcase((prev) => {
@@ -77,15 +53,15 @@ export default function Home() {
   return (
     <>
       <div className="px-4 text-2xl font-semibold">
-        <h2>Kunden</h2>
+        <h2>Users</h2>
         <div className="flex items-center py-4">
           <div className="flex gap-2">
             <form
               className="flex gap-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                let filteration = await getClients(`?${filterOn}=${filter}`);
-                setClients(filteration);
+                let filteration = await getEmails(`?${filterOn}=${filter}`);
+                setEmails(filteration);
               }}
             >
               <Input
@@ -136,12 +112,16 @@ export default function Home() {
                 {"Filter"}
               </Button>
             </form>
-            <Link
-              href={"/clients/create"}
-              className="ml-auto text-sm text-center font-medium rounded-md flex px-3  items-center  cursor-pointer bg-emerald-800 hover:bg-emerald-800 text-white hover:text-white shadow"
-            >
-              {"Klant toevoegen"}
-            </Link>
+            {user && user?.role == "admin" ? (
+              <Link
+                href={"/emails/create"}
+                className="ml-auto text-sm text-center font-medium rounded-md flex px-3  items-center  cursor-pointer bg-emerald-800 hover:bg-emerald-800 text-white hover:text-white shadow"
+              >
+                {"E-mail maken"}
+              </Link>
+            ) : (
+              ""
+            )}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -166,9 +146,9 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DataTableDemo data={clients} showcase={showcase} url={"clients"} />
+        <DataTableDemo data={emails} showcase={showcase} url={"emails"} />
         {/* Pagination Controls */}
-        <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
+        {/* <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <div className="pagination flex gap-5 justify-center">
@@ -185,26 +165,7 @@ export default function Home() {
           >
             Next
           </Button>
-          {/* Pagination Controls */}
-          <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </span>
-          <div className="pagination flex gap-5 justify-center">
-            <Button
-              onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPrev}
-            >
-              Previous
-            </Button>
-
-            <Button
-              onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNext}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        </div> */}
       </div>
     </>
   );

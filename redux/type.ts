@@ -12,3 +12,12 @@ export interface DataTableDemoProps {
   showcase: Record<string, string>;
   url: string;
 }
+
+export interface paginationType {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}

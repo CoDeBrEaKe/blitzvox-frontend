@@ -150,6 +150,25 @@ export default function Home() {
           showcase={showcase}
           url={"subscription-types"}
         />
+        {/* Pagination Controls */}
+        {/* <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
+          Page {pagination.currentPage} of {pagination.totalPages}
+        </span>
+        <div className="pagination flex gap-5 justify-center">
+          <Button
+            onClick={() => handlePageChange(pagination.currentPage - 1)}
+            disabled={!pagination.hasPrev}
+          >
+            Previous
+          </Button>
+
+          <Button
+            onClick={() => handlePageChange(pagination.currentPage + 1)}
+            disabled={!pagination.hasNext}
+          >
+            Next
+          </Button>
+        </div> */}
       </div>
     </>
   );

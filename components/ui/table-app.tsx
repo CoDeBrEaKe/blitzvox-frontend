@@ -16,11 +16,12 @@ import {
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { useAppSelector } from "@/redux/hooks";
 
 export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
   // Flexible column visibility - can be any string keys
   const router = useRouter();
-
+  const { user } = useAppSelector((state) => state.auth);
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
     new Set()
   );
@@ -132,7 +133,7 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
                         </TableCell>
                       ))
                   )}
-                  {showcase.actions && (
+                  {showcase.actions && user?.role == "admin" && (
                     <TableCell>
                       <Button
                         className="bg-red-500 cursor-pointer"

@@ -1,21 +1,26 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getSubscriptionTypeData } from "@/utils/api";
+import {
+  getEmailData,
+  getSubscriptionTypeData,
+  getUserData,
+} from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "@/redux/type";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { useAppSelector } from "@/redux/hooks";
+import { Textarea } from "@/components/ui/textarea";
 
 interface FormData {
-  sub_type: string;
-  sub_image: string;
+  subject: string;
+  content: string;
 }
 
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
-  const [subscriptionType, setSubscriptionType] = useState<Record<string, any>>(
-    {}
-  );
+  const { user } = useAppSelector((state) => state.auth);
+  const [emailData, setEmailData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [pageState, setPageState] = useState({
     error: "",
@@ -37,20 +42,16 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   // Submit main client form
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await axios.put(
-        `${BASE_URL}/subscription-types/${id}`,
-        data,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.put(`${BASE_URL}/emails/${id}`, data, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       if (response.status == 200 || response.status == 201) {
         setPageState({
           ...pageState,
-          success: "Abbointe succesvol bijgewerkt",
+          success: "e-mail bijgewerkt",
           error: "",
         });
         reset(data);
@@ -62,17 +63,17 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   };
 
   useEffect(() => {
-    async function getSubscription() {
+    async function getEmail() {
       try {
         setIsLoading(true);
-        const data = await getSubscriptionTypeData(id);
-        setSubscriptionType(data);
+        const data = await getEmailData(id);
+        setEmailData(data);
 
         // Reset form with client data when it's loaded
         if (data) {
           reset({
-            sub_type: data.sub_type || "",
-            sub_image: data.sub_image || "",
+            subject: data.subject || "",
+            content: data.content || "",
           });
         }
       } catch (error) {
@@ -81,7 +82,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         setIsLoading(false);
       }
     }
-    getSubscription();
+    getEmail();
   }, [reset]);
 
   if (isLoading) {
@@ -95,36 +96,24 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     <div className="px-8 py-4">
       <form onSubmit={handleSubmit(onSubmit)}>
         <h1 className="text-xl md:text-2xl font-semibold mb-10">abonnement:</h1>
-        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
+        <div className="flex flex-col md:flex md:flex-col md:gap-10 md:items-center ">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="sub_name" className="flex-1">
-              abonnementstype:
+            <label htmlFor="subject" className="flex-1">
+              onderwerp:
             </label>
             <Input
-              {...register("sub_type")}
-              id="sub_name"
+              {...register("subject")}
+              id="subject"
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
-          <div className="flex items-center gap-5 min-w-[40%]">
-            <label htmlFor="comapny" className="flex-1">
-              Icon:
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="inhoud" className="">
+              inhoud:
             </label>
-            <img
-              src={subscriptionType.sub_image}
-              className="max-w-[350px] flex-1 font-medium"
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
-          <div className="flex justify-between items-center gap-5 min-w-[40%] mt-6">
-            <label htmlFor="your_order_num" className="flex-1">
-              Pictogram toevoegen:
-            </label>
-            <Input
-              id="sub_type"
-              {...register("sub_image")}
-              type="file"
+            <Textarea
+              {...register("content")}
+              id="inhoud"
               className="max-w-[350px] text-lg font-medium"
             />
           </div>

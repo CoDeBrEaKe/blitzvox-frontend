@@ -1,21 +1,22 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getSubscriptionTypeData } from "@/utils/api";
+import { getSubscriptionTypeData, getUserData } from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "@/redux/type";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { useAppSelector } from "@/redux/hooks";
 
 interface FormData {
-  sub_type: string;
-  sub_image: string;
+  name: string;
+  username: string;
+  role: string;
 }
 
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
-  const [subscriptionType, setSubscriptionType] = useState<Record<string, any>>(
-    {}
-  );
+  const { user } = useAppSelector((state) => state.auth);
+  const [userData, setUserData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [pageState, setPageState] = useState({
     error: "",
@@ -37,16 +38,12 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   // Submit main client form
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await axios.put(
-        `${BASE_URL}/subscription-types/${id}`,
-        data,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.put(`${BASE_URL}/users/${id}`, data, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       if (response.status == 200 || response.status == 201) {
         setPageState({
           ...pageState,
@@ -62,17 +59,18 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   };
 
   useEffect(() => {
-    async function getSubscription() {
+    async function getUser() {
       try {
         setIsLoading(true);
-        const data = await getSubscriptionTypeData(id);
-        setSubscriptionType(data);
+        const data = await getUserData(id);
+        setUserData(data);
 
         // Reset form with client data when it's loaded
         if (data) {
           reset({
-            sub_type: data.sub_type || "",
-            sub_image: data.sub_image || "",
+            name: data.name || "",
+            username: data.username || "",
+            role: data.role || "",
           });
         }
       } catch (error) {
@@ -81,7 +79,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         setIsLoading(false);
       }
     }
-    getSubscription();
+    getUser();
   }, [reset]);
 
   if (isLoading) {
@@ -98,35 +96,45 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="sub_name" className="flex-1">
-              abonnementstype:
+              name:
             </label>
             <Input
-              {...register("sub_type")}
+              {...register("name")}
               id="sub_name"
+              disabled={user?.role == "admin" ? false : true}
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
-          <div className="flex items-center gap-5 min-w-[40%]">
-            <label htmlFor="comapny" className="flex-1">
-              Icon:
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="comapny" className="">
+              username:
             </label>
-            <img
-              src={subscriptionType.sub_image}
-              className="max-w-[350px] flex-1 font-medium"
+            <Input
+              {...register("username")}
+              disabled={user?.role == "admin" ? false : true}
+              id="sub_name"
+              className="max-w-[350px] text-lg font-medium"
             />
           </div>
         </div>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%] mt-6">
             <label htmlFor="your_order_num" className="flex-1">
-              Pictogram toevoegen:
+              rol:
             </label>
-            <Input
+            <select
               id="sub_type"
-              {...register("sub_image")}
-              type="file"
+              {...register("role")}
+              // disabled={user?.role == "admin" ? false : true}
+              disabled
               className="max-w-[350px] text-lg font-medium"
-            />
+            >
+              <option value="" selected disabled>
+                Choose
+              </option>
+              <option value="admin">admin</option>
+              <option value="agent">agent</option>
+            </select>
           </div>
         </div>
 
@@ -141,7 +149,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           </p>
         )}
 
-        <Button
+        {/* <Button
           type="submit"
           disabled={!isDirty}
           className={`self-center text-center mx-auto px-10 py-4 my-15 center flex justify-center cursor-pointer rounded-2xl text-xl ${
@@ -151,7 +159,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           }`}
         >
           {isDirty ? "Änderungen speichern" : "keine Änderungen"}
-        </Button>
+        </Button> */}
       </form>
     </div>
   );

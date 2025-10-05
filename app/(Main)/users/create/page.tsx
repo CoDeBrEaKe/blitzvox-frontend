@@ -1,21 +1,27 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getSubscriptionTypeData } from "@/utils/api";
+import {
+  getClientSubData,
+  getSubscriptionData,
+  getSubscriptionTypes,
+  getUsers,
+} from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "@/redux/type";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 
 interface FormData {
-  sub_type: string;
-  sub_image: string;
+  sub_name: string;
+  company: string;
+  sub_id: number;
 }
 
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
-  const [subscriptionType, setSubscriptionType] = useState<Record<string, any>>(
-    {}
-  );
+  const [subscriptionTypes, setSubscriptionTypes] = useState<
+    Record<string, any>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
   const [pageState, setPageState] = useState({
     error: "",
@@ -34,19 +40,14 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     mode: "onChange",
   });
 
-  // Submit main client form
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await axios.put(
-        `${BASE_URL}/subscription-types/${id}`,
-        data,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post(`${BASE_URL}/subscriptions`, data, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       if (response.status == 200 || response.status == 201) {
         setPageState({
           ...pageState,
@@ -60,29 +61,20 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
       console.error();
     }
   };
-
   useEffect(() => {
-    async function getSubscription() {
+    async function getData() {
       try {
         setIsLoading(true);
-        const data = await getSubscriptionTypeData(id);
-        setSubscriptionType(data);
-
-        // Reset form with client data when it's loaded
-        if (data) {
-          reset({
-            sub_type: data.sub_type || "",
-            sub_image: data.sub_image || "",
-          });
-        }
+        const users = await getSubscriptionTypes();
+        setSubscriptionTypes(users);
       } catch (error) {
         console.error("Error fetching client data:", error);
       } finally {
         setIsLoading(false);
       }
     }
-    getSubscription();
-  }, [reset]);
+    getData();
+  }, []);
 
   if (isLoading) {
     return (
@@ -98,35 +90,42 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="sub_name" className="flex-1">
-              abonnementstype:
+              abonnementsnaam:
             </label>
             <Input
-              {...register("sub_type")}
+              {...register("sub_name")}
               id="sub_name"
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
-          <div className="flex items-center gap-5 min-w-[40%]">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="comapny" className="flex-1">
-              Icon:
+              Firma:
             </label>
-            <img
-              src={subscriptionType.sub_image}
-              className="max-w-[350px] flex-1 font-medium"
+            <Input
+              required
+              id="comapny"
+              {...register("company")}
+              className="max-w-[350px] text-lg font-medium"
             />
           </div>
         </div>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%] mt-6">
             <label htmlFor="your_order_num" className="flex-1">
-              Pictogram toevoegen:
+              abonnementstype:
             </label>
-            <Input
+            <select
+              required
               id="sub_type"
-              {...register("sub_image")}
-              type="file"
-              className="max-w-[350px] text-lg font-medium"
-            />
+              {...register("sub_id")}
+              className="max-w-[350px] shadow border-1 p-2 rounded-md text-base font-medium"
+            >
+              <option selected>Kies type</option>
+              {subscriptionTypes.map((sub: any) => (
+                <option value={`${sub.id}`}>{sub.sub_type}</option>
+              ))}
+            </select>
           </div>
         </div>
 
