@@ -41,3 +41,24 @@ export async function getClientSubData(id: number) {
   );
   return req.data.clientSub;
 }
+export async function getSubscriptions(query: string = "") {
+  const req: variableData = await axios.get(
+    `${BASE_URL}/subscriptions${query}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return req.data.subscriptions;
+}
+export async function getSubscriptionData(id: number) {
+  const req: variableData = await axios.get(`${BASE_URL}/subscriptions/${id}`, {
+    withCredentials: true,
+  });
+  return req.data.subscription;
+}
+export async function getSubscriptionTypes(query: string = "") {
+  const req = await axios.get(`${BASE_URL}/subscription-types`, {
+    withCredentials: true,
+  });
+  return req.data.types;
+}

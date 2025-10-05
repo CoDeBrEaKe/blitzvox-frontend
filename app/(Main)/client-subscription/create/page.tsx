@@ -285,6 +285,25 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="family_count" className="flex-1 text-nowrap">
+              aantal gezinsleden in abonnement:
+            </label>
+            <Input
+              {...register("family_count")}
+              id="family_count"
+              className="max-w-[350px]"
+            />
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            <label htmlFor="cost" className="flex-1">
+              persons_name:
+            </label>
+            <Input id="cost" className="max-w-[350px]" />
+          </div>
+        </div>
+        <hr className="bg-[#eee] h-[1px] w-full my-6" />
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between my-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="paid" className="flex-1">
               VAP:
             </label>

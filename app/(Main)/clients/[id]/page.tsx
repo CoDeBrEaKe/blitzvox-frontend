@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea"; // Add this import
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import Link from "next/link";
 
 interface FormData {
   title: string;
@@ -200,9 +201,18 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   return (
     <div className="px-8 py-4">
       <form onSubmit={handleSubmit(onSubmit)}>
-        <h1 className="text-xl md:text-2xl font-semibold mb-10">
-          Client Details:
-        </h1>
+        <div className="flex justify-between items-center my-10">
+          <h1 className="text-xl md:text-2xl font-semibold ">
+            Client Details:
+          </h1>
+          <Link
+            href={`./client-subscription/${client.id}`}
+            className="px-4 py-2 flex items-center shadow rounded-md bg-[#28A745] text-white"
+          >
+            Abonnement aanmaken
+          </Link>
+        </div>
+
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="title" className="flex-1">

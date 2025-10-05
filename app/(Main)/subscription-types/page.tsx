@@ -7,9 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
@@ -18,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import { variableData } from "@/redux/type";
-import { getClientSubs } from "@/utils/api";
+import { getSubscriptionTypes } from "@/utils/api";
+import Link from "next/link";
 
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
@@ -26,20 +24,18 @@ export default function Home() {
 
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "select",
-    "client.first_name": "Name",
-    your_order_num: "Ihre Auftr.-Nr.",
-    sign_date: "Unterschriftsdatum",
-    "subscription.sub_name": "Tarif/Produkt",
-    counter_number: "Zählernummer",
-    "subscription.type.sub_image": "Verträge",
+    sub_type: "abonnementstype",
+    sub_image: "abonnementsafbeelding",
     actions: "actions",
   });
-  const [clientSubs, setClientsSubs] = useState<variableData[]>([]);
+  const [subscriptiontypes, setSubscriptiontypes] = useState<variableData[]>(
+    []
+  );
 
   useEffect(() => {
     const fetchData = async () => {
-      const clientsData = await getClientSubs();
-      setClientsSubs([...clientsData]);
+      const subscriptionData = await getSubscriptionTypes();
+      setSubscriptiontypes([...subscriptionData]);
     };
     fetchData();
   }, []);
@@ -58,15 +54,17 @@ export default function Home() {
   return (
     <>
       <div className="px-4 text-2xl font-semibold">
-        <h2>cliëntabonnementen</h2>
+        <h2>abonnementen</h2>
         <div className="flex items-center py-4">
           <div className="flex gap-2">
             <form
               className="flex gap-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                let filteration = await getClientSubs(`?${filterOn}=${filter}`);
-                setClientsSubs(filteration);
+                let filteration = await getSubscriptionTypes(
+                  `?${filterOn}=${filter}`
+                );
+                setSubscriptiontypes(filteration);
               }}
             >
               <Input
@@ -117,6 +115,12 @@ export default function Home() {
                 {"Filter"}
               </Button>
             </form>
+            <Link
+              href={"/subscription-types/create"}
+              className="ml-auto text-sm text-center font-medium rounded-md flex px-3  items-center  cursor-pointer bg-emerald-800 hover:bg-emerald-800 text-white hover:text-white shadow"
+            >
+              {"Abonnementstype aanmaken"}
+            </Link>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -142,9 +146,9 @@ export default function Home() {
           </DropdownMenu>
         </div>
         <DataTableDemo
-          data={clientSubs}
+          data={subscriptiontypes}
           showcase={showcase}
-          url={"client-subscription"}
+          url={"subscription-types"}
         />
       </div>
     </>

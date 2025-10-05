@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAppSelector } from "@/redux/hooks";
+import Link from "next/link";
 
 interface FormData {
   title: string;
@@ -72,11 +73,11 @@ const Page = ({ params }: { params: { id: number } }) => {
         alert("Client created successfully!");
         reset(data);
       } else {
-        alert("Failed to update client data");
+        alert("Failed to create client data");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Error updating client data");
+      alert("Error creating client data");
     }
   };
 
@@ -109,7 +110,6 @@ const Page = ({ params }: { params: { id: number } }) => {
         <h1 className="text-xl md:text-2xl font-semibold mb-10">
           Client Details:
         </h1>
-
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="title" className="flex-1">
