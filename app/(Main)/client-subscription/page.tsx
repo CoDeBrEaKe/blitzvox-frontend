@@ -23,7 +23,14 @@ import { getClientSubs } from "@/utils/api";
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
-
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 10,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNext: false,
+    hasPrev: false,
+  });
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "select",
     "client.first_name": "Name",
@@ -34,16 +41,45 @@ export default function Home() {
     "subscription.type.sub_image": "Verträge",
     actions: "actions",
   });
+  const [clientSubsData, setClientsSubsData] = useState<variableData[]>([]);
   const [clientSubs, setClientsSubs] = useState<variableData[]>([]);
 
+  const fetchClientSubsData = async (
+    filterQuery: string = "",
+    page: number = pagination.currentPage
+  ) => {
+    const res = await getClientSubs(filterQuery, {
+      page: page,
+      limit: 10,
+    });
+    setClientsSubs(res.clientSubs);
+    console.log(res.clientSubs);
+
+    setClientsSubsData(res);
+    if (res.pagination) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: res.pagination.currentPage || page,
+        totalPages: res.pagination.totalPages || 1,
+        totalItems: res.pagination.totalItems || 0,
+        hasNext: res.pagination.hasNext || false,
+        hasPrev: res.pagination.hasPrev || false,
+      }));
+    }
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      const clientsData = await getClientSubs();
-      setClientsSubs([...clientsData]);
-    };
-    fetchData();
+    fetchClientSubsData();
   }, []);
 
+  useEffect(() => {
+    const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
+    fetchClientSubsData(filterQuery, pagination.currentPage);
+  }, [pagination.currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+    }
+  };
   const toggleShowcase = (column: string) => {
     setShowcase((prev) => {
       const newObj =
@@ -65,8 +101,8 @@ export default function Home() {
               className="flex gap-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                let filteration = await getClientSubs(`?${filterOn}=${filter}`);
-                setClientsSubs(filteration);
+                let filteration = await getClientSubs(`${filterOn}${filter}`);
+                setClientsSubs(filteration.clientSubs);
               }}
             >
               <Input
@@ -99,7 +135,7 @@ export default function Home() {
                     key != "select" &&
                     key != "actions" && (
                       <option
-                        value={key}
+                        value={`${key}=`}
                         key={showcase[key]}
                         className="capitalize"
                         onSelect={(e) => setFilterOn(key)}
@@ -147,7 +183,7 @@ export default function Home() {
           url={"client-subscription"}
         />
         {/* Pagination Controls */}
-        {/* <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
+        <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <div className="pagination flex gap-5 justify-center">
@@ -164,7 +200,7 @@ export default function Home() {
           >
             Next
           </Button>
-        </div> */}
+        </div>
       </div>
     </>
   );

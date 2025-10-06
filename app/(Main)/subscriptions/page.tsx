@@ -29,15 +29,59 @@ export default function Home() {
     "type.sub_type": "abonnementstype",
     actions: "actions",
   });
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNext: false,
+    hasPrev: false,
+  });
   const [subscriptions, setSubscriptions] = useState<variableData[]>([]);
+  const [subscriptionsData, setSubscriptionsData] = useState<variableData[]>(
+    []
+  );
+
+  const fetchSubscriptionData = async (
+    filterQuery: string = "",
+    page: number = pagination.currentPage
+  ) => {
+    const res = await getSubscriptions(filterQuery, {
+      page: page,
+      limit: 10,
+    });
+    setSubscriptions(res.subscriptions);
+
+    setSubscriptionsData(res);
+    if (res.pagination) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: res.pagination.currentPage || page,
+        totalPages: res.pagination.totalPages || 1,
+        totalItems: res.pagination.totalItems || 0,
+        hasNext: res.pagination.hasNext || false,
+        hasPrev: res.pagination.hasPrev || false,
+      }));
+    }
+  };
+  useEffect(() => {
+    fetchSubscriptionData();
+  }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const subscriptionData = await getSubscriptions();
-      setSubscriptions([...subscriptionData]);
-    };
-    fetchData();
-  }, []);
+    const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
+    fetchSubscriptionData(filterQuery, pagination.currentPage);
+  }, [pagination.currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: newPage,
+      }));
+    }
+  };
 
   const toggleShowcase = (column: string) => {
     setShowcase((prev) => {
@@ -61,9 +105,9 @@ export default function Home() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 let filteration = await getSubscriptions(
-                  `?${filterOn}=${filter}`
+                  `${filterOn}${filter}`
                 );
-                setSubscriptions(filteration);
+                setSubscriptions(filteration.subscriptions);
               }}
             >
               <Input
@@ -96,7 +140,7 @@ export default function Home() {
                     key != "select" &&
                     key != "actions" && (
                       <option
-                        value={key}
+                        value={`${key}=`}
                         key={showcase[key]}
                         className="capitalize"
                         onSelect={(e) => setFilterOn(key)}
@@ -150,7 +194,7 @@ export default function Home() {
           url={"subscriptions"}
         />
         {/* Pagination Controls */}
-        {/* <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
+        <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <div className="pagination flex gap-5 justify-center">
@@ -167,7 +211,7 @@ export default function Home() {
           >
             Next
           </Button>
-        </div> */}
+        </div>
       </div>
     </>
   );

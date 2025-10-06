@@ -4,12 +4,16 @@ import { variableData } from "@/redux/type";
 
 export async function getClients(
   query: string = "",
-  params: object = { page: 1, limit: 10 }
+  params: object = { page: 1, limit: 10, query: "" }
 ) {
-  const req: variableData = await axios.get(`${BASE_URL}/clients${query}`, {
-    withCredentials: true,
-    params: params,
-  });
+  const req: variableData = await axios.get(
+    `${BASE_URL}/clients?page=${(params as any).page}&limit=${
+      (params as any).limit
+    }&${query}`,
+    {
+      withCredentials: true,
+    }
+  );
   return req.data;
 }
 
@@ -20,11 +24,19 @@ export async function getClientData(id: number) {
   return req.data.client;
 }
 
-export async function getUsers(query: string = "") {
-  const req: variableData = await axios.get(`${BASE_URL}/users${query}`, {
-    withCredentials: true,
-  });
-  return req.data.users;
+export async function getUsers(
+  query: string = "",
+  params: object = { page: 1, limit: 10 }
+) {
+  const req: variableData = await axios.get(
+    `${BASE_URL}/users?page=${(params as any).page}&limit=${
+      (params as any).limit
+    }&${query}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return req.data;
 }
 
 export async function getUserData(id: number) {
@@ -34,14 +46,19 @@ export async function getUserData(id: number) {
   return req.data.user;
 }
 
-export async function getClientSubs(query: string = "") {
+export async function getClientSubs(
+  query: string = "",
+  params: object = { page: 1, limit: 10 }
+) {
   const req: variableData = await axios.get(
-    `${BASE_URL}/client-subscription${query}`,
+    `${BASE_URL}/client-subscription?page=${(params as any).page}&limit=${
+      (params as any).limit
+    }&${query}`,
     {
       withCredentials: true,
     }
   );
-  return req.data.clientSubs;
+  return req.data;
 }
 export async function getClientSubData(id: number) {
   const req: variableData = await axios.get(
@@ -52,14 +69,19 @@ export async function getClientSubData(id: number) {
   );
   return req.data.clientSub;
 }
-export async function getSubscriptions(query: string = "") {
+export async function getSubscriptions(
+  query: string = "",
+  params: object = { page: 1, limit: 10 }
+) {
   const req: variableData = await axios.get(
-    `${BASE_URL}/subscriptions${query}`,
+    `${BASE_URL}/subscriptions?page=${(params as any).page}&limit=${
+      (params as any).limit
+    }&${query}`,
     {
       withCredentials: true,
     }
   );
-  return req.data.subscriptions;
+  return req.data;
 }
 
 export async function getSubscriptionData(id: number) {
@@ -69,11 +91,19 @@ export async function getSubscriptionData(id: number) {
   return req.data.subscription;
 }
 
-export async function getSubscriptionTypes(query: string = "") {
-  const req = await axios.get(`${BASE_URL}/subscription-types${query}`, {
-    withCredentials: true,
-  });
-  return req.data.types;
+export async function getSubscriptionTypes(
+  query: string = "",
+  params: object = { page: 1, limit: 10 }
+) {
+  const req = await axios.get(
+    `${BASE_URL}/subscription-types?page=${(params as any).page}&limit=${
+      (params as any).limit
+    }&${query}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return req.data;
 }
 
 export async function getSubscriptionTypeData(id: number) {
@@ -86,11 +116,19 @@ export async function getSubscriptionTypeData(id: number) {
   return req.data.type;
 }
 
-export async function getEmails(query: string = "") {
-  const req: variableData = await axios.get(`${BASE_URL}/emails${query}`, {
-    withCredentials: true,
-  });
-  return req.data.emails;
+export async function getEmails(
+  query: string = "",
+  params: object = { page: 1, limit: 10 }
+) {
+  const req: variableData = await axios.get(
+    `${BASE_URL}/emails?page=${(params as any).page}&limit=${
+      (params as any).limit
+    }&${query}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return req.data;
 }
 
 export async function getEmailData(id: number) {

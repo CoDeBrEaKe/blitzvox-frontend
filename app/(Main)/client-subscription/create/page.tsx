@@ -9,6 +9,7 @@ import axios from "axios";
 import { useAppSelector } from "@/redux/hooks";
 
 interface FormData {
+  client_id: number;
   order_num: string;
   your_order_num: string;
   cost: string;
@@ -35,7 +36,6 @@ interface FormData {
 
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   const [clientSub, setClientSub] = useState<Record<string, any>>({});
-  const [isLoading, setIsLoading] = useState(true);
   const [pageState, setPageState] = useState({
     error: "",
     success: "",
@@ -84,14 +84,6 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
       console.error();
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="px-8 py-4">

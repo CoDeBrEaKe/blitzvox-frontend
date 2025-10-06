@@ -156,7 +156,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         setClient(data);
         setFeedbacks(data.feedbacks || []); // Set feedbacks separately
         const users = await getUsers();
-        setUsers(users);
+        setUsers(users.users);
 
         // Reset form with client data when it's loaded
         if (data) {
@@ -206,7 +206,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             Client Details:
           </h1>
           <Link
-            href={`./client-subscription/${client.id}`}
+            href={`/client-subscription/create/?client=${client.id}`}
             className="px-4 py-2 flex items-center shadow rounded-md bg-[#28A745] text-white"
           >
             Abonnement aanmaken

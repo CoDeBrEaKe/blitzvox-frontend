@@ -20,7 +20,6 @@ import Link from "next/link";
 import { useAppSelector } from "@/redux/hooks";
 
 export default function Home() {
-  const { user } = useAppSelector((state) => state.auth);
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
 
@@ -32,14 +31,55 @@ export default function Home() {
     actions: "actions",
   });
   const [users, setUsers] = useState<variableData[]>([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNext: false,
+    hasPrev: false,
+  });
+  const [usersData, setUsersData] = useState<variableData[]>([]);
+
+  const fetchUsersData = async (
+    filterQuery: string = "",
+    page: number = pagination.currentPage
+  ) => {
+    const res = await getUsers(filterQuery, {
+      page: page,
+      limit: 10,
+    });
+    setUsers(res.users);
+
+    setUsersData(res);
+    if (res.pagination) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: res.pagination.currentPage || page,
+        totalPages: res.pagination.totalPages || 1,
+        totalItems: res.pagination.totalItems || 0,
+        hasNext: res.pagination.hasNext || false,
+        hasPrev: res.pagination.hasPrev || false,
+      }));
+    }
+  };
+  useEffect(() => {
+    fetchUsersData();
+  }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const usersData = await getUsers();
-      setUsers([...usersData]);
-    };
-    fetchData();
-  }, []);
+    const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
+    fetchUsersData(filterQuery, pagination.currentPage);
+  }, [pagination.currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: newPage,
+      }));
+    }
+  };
 
   const toggleShowcase = (column: string) => {
     setShowcase((prev) => {
@@ -62,8 +102,8 @@ export default function Home() {
               className="flex gap-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                let filteration = await getUsers(`?${filterOn}=${filter}`);
-                setUsers(filteration);
+                let filteration = await getUsers(`${filterOn}${filter}`);
+                setUsers(filteration.users);
               }}
             >
               <Input
@@ -96,7 +136,7 @@ export default function Home() {
                     key != "select" &&
                     key != "actions" && (
                       <option
-                        value={key}
+                        value={`${key}=`}
                         key={showcase[key]}
                         className="capitalize"
                         onSelect={(e) => setFilterOn(key)}
@@ -150,7 +190,7 @@ export default function Home() {
         </div>
         <DataTableDemo data={users} showcase={showcase} url={"users"} />
         {/* Pagination Controls */}
-        {/* <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
+        <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <div className="pagination flex gap-5 justify-center">
@@ -167,7 +207,7 @@ export default function Home() {
           >
             Next
           </Button>
-        </div> */}
+        </div>
       </div>
     </>
   );

@@ -30,14 +30,46 @@ export default function Home() {
     actions: "actions",
   });
   const [emails, setEmails] = useState<variableData[]>([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNext: false,
+    hasPrev: false,
+  });
+  const [emailsData, setEmailsData] = useState<variableData[]>([]);
+
+  const fetchEmailData = async (
+    filterQuery: string = "",
+    page: number = pagination.currentPage
+  ) => {
+    const res = await getEmails(filterQuery, {
+      page: page,
+      limit: 10,
+    });
+    setEmailsData(res.emails);
+
+    setEmailsData(res);
+    if (res.pagination) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: res.pagination.currentPage || page,
+        totalPages: res.pagination.totalPages || 1,
+        totalItems: res.pagination.totalItems || 0,
+        hasNext: res.pagination.hasNext || false,
+        hasPrev: res.pagination.hasPrev || false,
+      }));
+    }
+  };
+  useEffect(() => {
+    fetchEmailData();
+  }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const emails = await getEmails();
-      setEmails([...emails]);
-    };
-    fetchData();
-  }, []);
+    const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
+    fetchEmailData(filterQuery, pagination.currentPage);
+  }, [pagination.currentPage]);
 
   const toggleShowcase = (column: string) => {
     setShowcase((prev) => {
@@ -60,8 +92,8 @@ export default function Home() {
               className="flex gap-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                let filteration = await getEmails(`?${filterOn}=${filter}`);
-                setEmails(filteration);
+                let filteration = await getEmails(`${filterOn}${filter}`);
+                setEmails(filteration.emails);
               }}
             >
               <Input
@@ -94,7 +126,7 @@ export default function Home() {
                     key != "select" &&
                     key != "actions" && (
                       <option
-                        value={key}
+                        value={`${key}=`}
                         key={showcase[key]}
                         className="capitalize"
                         onSelect={(e) => setFilterOn(key)}

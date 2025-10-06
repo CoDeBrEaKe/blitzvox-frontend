@@ -7,7 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -20,13 +19,18 @@ import { Button } from "@/components/ui/button";
 import { variableData } from "@/redux/type";
 import { getClients } from "@/utils/api";
 import Link from "next/link";
-import { paginationType } from "@/redux/type";
+
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
+  const [clientsData, setClientsData] = React.useState({
+    clients: [],
+    pagination: {},
+  });
+
   const [pagination, setPagination] = useState({
     currentPage: 1,
-    totalPages: 10,
+    totalPages: 1,
     totalItems: 0,
     itemsPerPage: 10,
     hasNext: false,
@@ -44,22 +48,55 @@ export default function Home() {
     feedbacks: "Letztes Feedback",
     actions: "actions",
   });
+
   const [clients, setClients] = useState<variableData[]>([]);
 
-  useEffect(() => {
-    const fetchClients = async () => {
-      const clientsData = await getClients("", {
-        page: pagination.currentPage,
-        limit: 10,
+  // Fetch clients data
+  const fetchClientsData = async (
+    filterQuery: string = "",
+    page: number = pagination.currentPage
+  ) => {
+    try {
+      const clientsData = await getClients(filterQuery, {
+        page: page,
+        limit: pagination.itemsPerPage,
       });
-      setClients([...clientsData.clients]);
-      setPagination({ ...clientsData.pagination });
-    };
-    fetchClients();
+
+      setClientsData(clientsData);
+      setClients(clientsData.clients);
+
+      // Update pagination with API response data
+      if (clientsData.pagination) {
+        setPagination((prev) => ({
+          ...prev,
+          currentPage: clientsData.pagination.currentPage || page,
+          totalPages: clientsData.pagination.totalPages || 1,
+          totalItems: clientsData.pagination.totalItems || 0,
+          hasNext: clientsData.pagination.hasNext || false,
+          hasPrev: clientsData.pagination.hasPrev || false,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchClientsData();
   }, []);
+
+  // Refetch when page changes
+  useEffect(() => {
+    const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
+    fetchClientsData(filterQuery, pagination.currentPage);
+  }, [pagination.currentPage]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: newPage,
+      }));
     }
   };
 
@@ -84,8 +121,12 @@ export default function Home() {
               className="flex gap-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                let filteration = await getClients(`?${filterOn}=${filter}`);
-                setClients(filteration);
+                let filteration = await getClients(`${filterOn}${filter}`, {
+                  page: pagination.currentPage,
+                  limit: 10,
+                });
+                setClients(filteration.clients);
+                setPagination(filteration.pagination);
               }}
             >
               <Input
@@ -116,9 +157,10 @@ export default function Home() {
                 {Object.keys(showcase).map(
                   (key) =>
                     key != "select" &&
+                    key != "feedbacks" &&
                     key != "actions" && (
                       <option
-                        value={key}
+                        value={`${key}=`}
                         key={showcase[key]}
                         className="capitalize"
                         onSelect={(e) => setFilterOn(key)}
@@ -185,25 +227,6 @@ export default function Home() {
           >
             Next
           </Button>
-          {/* Pagination Controls */}
-          <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </span>
-          <div className="pagination flex gap-5 justify-center">
-            <Button
-              onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPrev}
-            >
-              Previous
-            </Button>
-
-            <Button
-              onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNext}
-            >
-              Next
-            </Button>
-          </div>
         </div>
       </div>
     </>
