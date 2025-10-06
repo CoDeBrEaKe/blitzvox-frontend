@@ -102,17 +102,17 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             consumption: data.consumption || "",
             night_consumption: data.night_consumption || "",
             paid: data.paid,
-            paid_date: data.paid_date?.split("T")[0] || "",
+            paid_date: data.paid_date?.split("T")[0] || null,
             rl: data.rl,
-            rl_date: data.rl_date?.split("T")[0] || "",
+            rl_date: data.rl_date?.split("T")[0] || null,
             termination_date: data.termination_date?.split("T")[0] || null,
-            restablish_date: data.restablish_date?.split("T")[0] || "",
-            sign_date: data.sign_date?.split("T")[0] || "",
-            start_importing: data.start_importing?.split("T")[0] || "",
-            end_importing: data.end_importing?.split("T")[0] || "",
-            contract_end: data.contract_end?.split("T")[0] || "",
+            restablish_date: data.restablish_date?.split("T")[0] || null,
+            sign_date: data.sign_date?.split("T")[0] || null,
+            start_importing: data.start_importing?.split("T")[0] || null,
+            end_importing: data.end_importing?.split("T")[0] || null,
+            contract_end: data.contract_end?.split("T")[0] || null,
             contract_time: data.contract_time || "",
-            family_count: data.family_count || "",
+            family_count: data.family_count || 0,
             person_num: data.person_num || "",
             persons_name: data.persons_name || "",
             documents_link: data.documents_link || "",
@@ -210,7 +210,8 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               Unterschriftsdatum”:
             </label>
             <Input
-              {...register("your_order_num")}
+              {...register("sign_date")}
+              type="date"
               id="street"
               className="max-w-[350px]"
             />
@@ -257,6 +258,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             </label>
             <Input
               {...register("termination_date")}
+              type="date"
               id="termination_date"
               className="max-w-[350px]"
             />
@@ -267,6 +269,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             </label>
             <Input
               {...register("restablish_date")}
+              type="date"
               id="restablish_date"
               className="max-w-[350px]"
             />
@@ -304,6 +307,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             </label>
             <Input
               {...register("start_importing")}
+              type="date"
               id="start_importing"
               className="max-w-[350px]"
             />
@@ -314,6 +318,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             </label>
             <Input
               {...register("end_importing")}
+              type="date"
               id="end_importing"
               className="max-w-[350px]"
             />
@@ -391,6 +396,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <Input
               {...register("paid_date")}
               id="paid_date"
+              type="date"
               className="max-w-[350px]"
             />
           </div>
@@ -417,6 +423,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <Input
               {...register("rl_date")}
               id="rl_date"
+              type="date"
               className="max-w-[350px] "
             />
           </div>

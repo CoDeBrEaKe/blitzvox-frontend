@@ -23,6 +23,12 @@ export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
 
+  const [filterShow, setFilterShow] = useState<Record<string, string>>({
+    select: "select",
+    subject: "E-mailonderwerp",
+    content: "E-mailinhoud",
+    actions: "actions",
+  });
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "select",
     subject: "E-mailonderwerp",
@@ -71,11 +77,16 @@ export default function Home() {
     fetchEmailData(filterQuery, pagination.currentPage);
   }, [pagination.currentPage]);
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+    }
+  };
+
   const toggleShowcase = (column: string) => {
-    setShowcase((prev) => {
+    setFilterShow((prev) => {
       const newObj =
         prev[column] === ""
-          ? { ...prev, [column]: column }
+          ? { ...prev, [column]: showcase[column] }
           : { ...prev, [column]: "" };
 
       return newObj;
@@ -168,7 +179,7 @@ export default function Home() {
                     <DropdownMenuCheckboxItem
                       key={key}
                       className="capitalize"
-                      checked={showcase[key] != "" ? true : false}
+                      checked={filterShow[key] != "" ? true : false}
                       onCheckedChange={() => toggleShowcase(key)}
                     >
                       {showcase[key]}
@@ -178,9 +189,9 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DataTableDemo data={emails} showcase={showcase} url={"emails"} />
+        <DataTableDemo data={emails} showcase={filterShow} url={"emails"} />
         {/* Pagination Controls */}
-        {/* <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
+        <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <div className="pagination flex gap-5 justify-center">
@@ -197,7 +208,7 @@ export default function Home() {
           >
             Next
           </Button>
-        </div> */}
+        </div>
       </div>
     </>
   );

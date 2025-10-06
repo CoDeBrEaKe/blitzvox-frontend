@@ -23,6 +23,13 @@ export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
 
+  const [filterShow, setFilterShow] = useState<Record<string, string>>({
+    select: "select",
+    name: "Name",
+    username: "gebruikersnaam",
+    role: "rol",
+    actions: "actions",
+  });
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "select",
     name: "Name",
@@ -82,10 +89,10 @@ export default function Home() {
   };
 
   const toggleShowcase = (column: string) => {
-    setShowcase((prev) => {
+    setFilterShow((prev) => {
       const newObj =
         prev[column] === ""
-          ? { ...prev, [column]: column }
+          ? { ...prev, [column]: showcase[column] }
           : { ...prev, [column]: "" };
 
       return newObj;
@@ -178,7 +185,7 @@ export default function Home() {
                     <DropdownMenuCheckboxItem
                       key={key}
                       className="capitalize"
-                      checked={showcase[key] != "" ? true : false}
+                      checked={filterShow[key] != "" ? true : false}
                       onCheckedChange={() => toggleShowcase(key)}
                     >
                       {showcase[key]}
@@ -188,7 +195,7 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DataTableDemo data={users} showcase={showcase} url={"users"} />
+        <DataTableDemo data={users} showcase={filterShow} url={"users"} />
         {/* Pagination Controls */}
         <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}

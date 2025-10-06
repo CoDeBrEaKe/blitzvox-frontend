@@ -37,6 +37,17 @@ export default function Home() {
     hasPrev: false,
   });
 
+  const [filterShow, setFilterShow] = useState<Record<string, string>>({
+    select: "select",
+    first_name: "Name",
+    email: "E-mail",
+    phone: "Telefone",
+    company_name: "Firma",
+    city: "Stadt",
+    subscriptions: "Verträge",
+    feedbacks: "Letztes Feedback",
+    actions: "actions",
+  });
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "select",
     first_name: "Name",
@@ -101,10 +112,10 @@ export default function Home() {
   };
 
   const toggleShowcase = (column: string) => {
-    setShowcase((prev) => {
+    setFilterShow((prev) => {
       const newObj =
         prev[column] === ""
-          ? { ...prev, [column]: column }
+          ? { ...prev, [column]: showcase[column] }
           : { ...prev, [column]: "" };
 
       return newObj;
@@ -161,7 +172,7 @@ export default function Home() {
                     key != "actions" && (
                       <option
                         value={`${key}=`}
-                        key={showcase[key]}
+                        key={filterShow[key]}
                         className="capitalize"
                         onSelect={(e) => setFilterOn(key)}
                       >
@@ -198,7 +209,7 @@ export default function Home() {
                     <DropdownMenuCheckboxItem
                       key={key}
                       className="capitalize"
-                      checked={showcase[key] != "" ? true : false}
+                      checked={filterShow[key] != "" ? true : false}
                       onCheckedChange={() => toggleShowcase(key)}
                     >
                       {showcase[key]}
@@ -208,7 +219,7 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DataTableDemo data={clients} showcase={showcase} url={"clients"} />
+        <DataTableDemo data={clients} showcase={filterShow} url={"clients"} />
         {/* Pagination Controls */}
         <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}

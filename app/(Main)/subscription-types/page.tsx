@@ -22,6 +22,12 @@ export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
 
+  const [filterShow, setFilterShow] = useState<Record<string, string>>({
+    select: "select",
+    sub_type: "abonnementstype",
+    sub_image: "abonnementsafbeelding",
+    actions: "actions",
+  });
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "select",
     sub_type: "abonnementstype",
@@ -84,10 +90,10 @@ export default function Home() {
   };
 
   const toggleShowcase = (column: string) => {
-    setShowcase((prev) => {
+    setFilterShow((prev) => {
       const newObj =
         prev[column] === ""
-          ? { ...prev, [column]: column }
+          ? { ...prev, [column]: showcase[column] }
           : { ...prev, [column]: "" };
 
       return newObj;
@@ -178,7 +184,7 @@ export default function Home() {
                     <DropdownMenuCheckboxItem
                       key={key}
                       className="capitalize"
-                      checked={showcase[key] != "" ? true : false}
+                      checked={filterShow[key] != "" ? true : false}
                       onCheckedChange={() => toggleShowcase(key)}
                     >
                       {showcase[key]}
@@ -190,7 +196,7 @@ export default function Home() {
         </div>
         <DataTableDemo
           data={subscriptiontypes}
-          showcase={showcase}
+          showcase={filterShow}
           url={"subscription-types"}
         />
         {/* Pagination Controls */}

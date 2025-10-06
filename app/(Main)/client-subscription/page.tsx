@@ -31,6 +31,16 @@ export default function Home() {
     hasNext: false,
     hasPrev: false,
   });
+  const [filterShow, setfilterShow] = useState<Record<string, string>>({
+    select: "select",
+    "client.first_name": "Name",
+    your_order_num: "Ihre Auftr.-Nr.",
+    sign_date: "Unterschriftsdatum",
+    "subscription.sub_name": "Tarif/Produkt",
+    counter_number: "Zählernummer",
+    "subscription.type.sub_image": "Verträge",
+    actions: "actions",
+  });
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "select",
     "client.first_name": "Name",
@@ -53,7 +63,6 @@ export default function Home() {
       limit: 10,
     });
     setClientsSubs(res.clientSubs);
-    console.log(res.clientSubs);
 
     setClientsSubsData(res);
     if (res.pagination) {
@@ -81,10 +90,10 @@ export default function Home() {
     }
   };
   const toggleShowcase = (column: string) => {
-    setShowcase((prev) => {
+    setfilterShow((prev) => {
       const newObj =
         prev[column] === ""
-          ? { ...prev, [column]: column }
+          ? { ...prev, [column]: showcase[column] }
           : { ...prev, [column]: "" };
 
       return newObj;
@@ -167,7 +176,7 @@ export default function Home() {
                     <DropdownMenuCheckboxItem
                       key={key}
                       className="capitalize"
-                      checked={showcase[key] != "" ? true : false}
+                      checked={filterShow[key] != "" ? true : false}
                       onCheckedChange={() => toggleShowcase(key)}
                     >
                       {showcase[key]}
@@ -179,7 +188,7 @@ export default function Home() {
         </div>
         <DataTableDemo
           data={clientSubs}
-          showcase={showcase}
+          showcase={filterShow}
           url={"client-subscription"}
         />
         {/* Pagination Controls */}

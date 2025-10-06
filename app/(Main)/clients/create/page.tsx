@@ -154,6 +154,7 @@ const Page = ({ params }: { params: { id: number } }) => {
             <Input
               {...register("birth_date")}
               id="birth_date"
+              type="date"
               className="max-w-[350px]"
             />
           </div>
@@ -276,6 +277,7 @@ const Page = ({ params }: { params: { id: number } }) => {
             </label>
             <Input
               {...register("admin_note")}
+              disabled={user?.role == "admin" ? false : true}
               id="admin_note"
               className="max-w-[350px]"
             />

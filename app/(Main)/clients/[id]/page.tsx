@@ -254,6 +254,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               Geburtsdatum:
             </label>
             <Input
+              type="date"
               {...register("birth_date")}
               id="birth_date"
               className="max-w-[350px]"
@@ -382,6 +383,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             </label>
             <Input
               {...register("admin_note")}
+              disabled={user?.role == "admin" ? false : true}
               id="admin_note"
               className="max-w-[350px]"
             />
