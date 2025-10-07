@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { variableData } from "@/redux/type";
 import { getClients } from "@/utils/api";
 import Link from "next/link";
-
+import { EmailModal } from "@/components/ui/emailModal";
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
@@ -196,6 +196,7 @@ export default function Home() {
               {"Klant toevoegen"}
             </Link>
           </div>
+          <EmailModal active={false} className="my-5"></EmailModal>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">

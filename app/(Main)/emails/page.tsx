@@ -54,7 +54,7 @@ export default function Home() {
       page: page,
       limit: 10,
     });
-    setEmailsData(res.emails);
+    setEmails(res.emails);
 
     setEmailsData(res);
     if (res.pagination) {
