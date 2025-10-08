@@ -20,6 +20,7 @@ import { variableData } from "@/redux/type";
 import { getClients } from "@/utils/api";
 import Link from "next/link";
 import { EmailModal } from "@/components/ui/emailModal";
+import Form from "@/components/ui/form";
 
 export default function Home() {
   const [active, setActive] = React.useState<boolean>(false);
@@ -217,6 +218,9 @@ export default function Home() {
               active={active}
               selectedRows={selectedRows}
             ></EmailModal>
+          </div>
+          <div>
+            <Form />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
