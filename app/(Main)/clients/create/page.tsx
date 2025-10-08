@@ -86,7 +86,7 @@ const Page = ({ params }: { params: { id: number } }) => {
       try {
         setIsLoading(true);
         const users = await getUsers();
-        setUsers(users);
+        setUsers(users.users);
       } catch (error) {
         console.error("Error fetching client data:", error);
       } finally {

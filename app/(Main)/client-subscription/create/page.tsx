@@ -1,15 +1,19 @@
 "use client";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import React, { useEffect, useState } from "react";
-import { BASE_URL } from "@/redux/type";
+import React, { use, useEffect, useState } from "react";
+import { BASE_URL, variableData } from "@/redux/type";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 
 import { useAppSelector } from "@/redux/hooks";
+import { getSubscriptions } from "@/utils/api";
 
 interface FormData {
+  user_id: number;
   client_id: number;
+  sub_id: number;
   order_num: string;
   your_order_num: string;
   cost: string;
@@ -17,9 +21,9 @@ interface FormData {
   counter_number: string;
   consumption: string;
   night_consumption: string;
-  paid: boolean;
+  paid: boolean | string;
   paid_date: string;
-  rl: boolean;
+  rl: boolean | string;
   rl_date: string;
   termination_date: number | null;
   restablish_date: string;
@@ -34,14 +38,17 @@ interface FormData {
   documents_link: string;
 }
 
-const Page = ({ params }: { params: Promise<{ id: number }> }) => {
-  const [clientSub, setClientSub] = useState<Record<string, any>>({});
+const Page = () => {
+  const [subscriptions, setSubscriptions] = useState<variableData[]>([]);
   const [pageState, setPageState] = useState({
     error: "",
     success: "",
   });
-  const { id } = React.use(params);
-
+  const { user } = useAppSelector((state) => state.auth);
+  const searchParams = useSearchParams();
+  const clientId = searchParams.get("client");
+  const id = clientId ? parseInt(clientId) : NaN;
+  console.log(id);
   // Main form for client data
   const {
     register,
@@ -55,15 +62,30 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     mode: "onChange",
   });
 
+  useEffect(() => {
+    const getsubs = async () => {
+      const subscriptions = await getSubscriptions();
+      if (subscriptions) {
+        setSubscriptions(subscriptions.subscriptions);
+      }
+    };
+    getsubs();
+  }, []);
+
   // Submit main client form
   const onSubmit = async (data: FormData) => {
     data = {
       ...data,
+      client_id: id,
+      user_id: (user as any)?.id,
+      rl: data.rl == "true" ? true : false,
+      paid: data.paid == "true" ? true : false,
+      documents_link: "",
     };
     try {
-      const response = await axios.put(
+      const response = await axios.post(
         `${BASE_URL}/client-subscription`,
-        data,
+        { ...data },
         {
           withCredentials: true,
           headers: {
@@ -98,33 +120,38 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             </label>
             <Input
               id="order_num"
-              value={clientSub.order_num}
+              {...register("order_num")}
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
-        </div>
-        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
-          <div className="flex justify-between items-center gap-5 min-w-[40%] mt-6">
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="your_order_num" className="flex-1">
               Ihre Auftr.-Nr.:
             </label>
             <Input
               id="family_name"
-              value={clientSub.your_order_num}
+              {...register("your_order_num")}
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
         </div>
-        <hr className="bg-[#eee] h-[1px] w-full my-6" />
-        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
+        <div className="flex flex-col my-6 gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="company_name" className="flex-1">
-              Abo-Typ:
+            <label htmlFor="order_num" className="flex-1">
+              abonnement:
             </label>
-            <Input
-              value={clientSub["subscription.type.sub_type"]}
-              className="max-w-[350px]"
-            />
+            <select
+              {...register("sub_id", { required: true })}
+              id="sub_id"
+              className="cursor-pointer rounded-md border-1 px-4 py-2 font-medium text-sm"
+            >
+              <option value="" selected>
+                kies abonnement
+              </option>
+              {subscriptions?.map((sub) => (
+                <option value={sub.id}>{sub.sub_name}</option>
+              ))}
+            </select>
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
@@ -134,18 +161,9 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               Unterschriftsdatum”:
             </label>
             <Input
-              value={clientSub["sign_date"]?.split("T")[0]}
+              {...register("sign_date")}
               id="street"
-              className="max-w-[350px]"
-            />
-          </div>
-          <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="city" className="flex-1">
-              Tarif/Produkt:
-            </label>
-            <Input
-              id="city"
-              value={clientSub["subscription.sub_name"]}
+              type="date"
               className="max-w-[350px]"
             />
           </div>
@@ -182,6 +200,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <Input
               {...register("termination_date")}
               id="termination_date"
+              type="date"
               className="max-w-[350px]"
             />
           </div>
@@ -192,6 +211,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <Input
               {...register("restablish_date")}
               id="restablish_date"
+              type="date"
               className="max-w-[350px]"
             />
           </div>
@@ -230,6 +250,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               {...register("start_importing")}
               id="start_importing"
               className="max-w-[350px]"
+              type="date"
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
@@ -238,6 +259,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             </label>
             <Input
               {...register("end_importing")}
+              type="date"
               id="end_importing"
               className="max-w-[350px]"
             />
@@ -253,25 +275,20 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               id="contract_time"
               className="max-w-[350px]"
             >
-              <option
-                value="1 Year"
-                selected={clientSub.contract_time == "1 Year"}
-              >
-                Ein Jahr
-              </option>
-              <option
-                value="2 Years"
-                selected={clientSub.contract_time == "2 Years"}
-              >
-                zwei Jahr
-              </option>
+              <option value="1 Year">Ein Jahr</option>
+              <option value="2 Years">zwei Jahr</option>
             </select>
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="cost" className="flex-1">
               Provision:
             </label>
-            <Input {...register("cost")} id="cost" className="max-w-[350px]" />
+            <Input
+              {...register("cost")}
+              id="cost"
+              type="number"
+              className="max-w-[350px]"
+            />
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
@@ -300,12 +317,12 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               VAP:
             </label>
             <select {...register("paid")} id="paid" className="max-w-[350px]">
-              <option value={"true"} selected={clientSub.paid == "true"}>
-                Yes
+              <option value="" selected>
+                Kies
               </option>
-              <option value={"false"} selected={clientSub.paid == "false"}>
-                No
-              </option>
+
+              <option value={"true"}>Yes</option>
+              <option value={"false"}>No</option>
             </select>
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
@@ -315,6 +332,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <Input
               {...register("paid_date")}
               id="paid_date"
+              type="date"
               className="max-w-[350px]"
             />
           </div>
@@ -326,12 +344,11 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               RL:
             </label>
             <select {...register("rl")} id="rl" className="max-w-[350px]">
-              <option value={"true"} selected={clientSub.paid == "true"}>
-                Yes
+              <option value="" selected>
+                Kies
               </option>
-              <option value={"false"} selected={clientSub.paid == "false"}>
-                No
-              </option>
+              <option value={"true"}>Yes</option>
+              <option value={"false"}>No</option>
             </select>
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
@@ -341,6 +358,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <Input
               {...register("rl_date")}
               id="rl_date"
+              type="date"
               className="max-w-[350px] "
             />
           </div>
@@ -351,7 +369,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               Dokumente hochladen:
             </label>
             <Input
-              // {...register("documents_link")}
+              {...register("documents_link")}
               id="documents_link"
               type="file"
               className="max-w-[350px]"

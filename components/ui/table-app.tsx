@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { BASE_URL, DataTableDemoProps } from "@/redux/type";
+import { BASE_URL, DataTableDemoProps, variableData } from "@/redux/type";
 
 import {
   Table,
@@ -18,32 +18,35 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useAppSelector } from "@/redux/hooks";
 
-export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
+export function DataTableDemo({
+  data,
+  showcase,
+  url,
+  selectedRows,
+  setSelectedRows,
+}: DataTableDemoProps) {
   // Flexible column visibility - can be any string keys
   const router = useRouter();
   const { user } = useAppSelector((state) => state.auth);
-  const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
-    new Set()
-  );
 
   // Handle row selection
-  const toggleRowSelection = (id: string): void => {
+  const toggleRowSelection = (row: variableData): void => {
     const newSelected = new Set(selectedRows);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
+    if (newSelected.has(row)) {
+      newSelected.delete(row);
     } else {
-      newSelected.add(id);
+      newSelected.add(row);
     }
-    setSelectedRows(newSelected);
+    if (setSelectedRows) setSelectedRows(newSelected);
   };
 
-  const toggleAllRows = (): void => {
-    if (selectedRows.size === data.length) {
-      setSelectedRows(new Set());
-    } else {
-      setSelectedRows(new Set(data.map((row) => row.id)));
-    }
-  };
+  // const toggleAllRows = (): void => {
+  //   if (selectedRows.size === data.length) {
+  //     setSelectedRows(new Set());
+  //   } else {
+  //     setSelectedRows(new Set(data.map((row) => row.id)));
+  //   }
+  // };
 
   // Filter data by email
   return (
@@ -72,14 +75,14 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
               data.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={selectedRows.has(row.id) ? "selected" : undefined}
+                  data-state={selectedRows?.has(row) ? "selected" : undefined}
                   className="cursor-pointer"
                 >
                   {showcase.select && (
                     <TableCell>
                       <Checkbox
-                        checked={selectedRows.has(row.id)}
-                        onCheckedChange={() => toggleRowSelection(row.id)}
+                        checked={selectedRows?.has(row)}
+                        onCheckedChange={() => toggleRowSelection(row)}
                         aria-label="Select row"
                       />
                     </TableCell>
@@ -182,7 +185,7 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
-          {selectedRows.size} of {data.length} row(s) selected.
+          {selectedRows?.size} of {data.length} row(s) selected.
         </div>
       </div>
     </div>

@@ -11,6 +11,8 @@ export interface DataTableDemoProps {
   data: variableData[];
   showcase: Record<string, string>;
   url: string;
+  selectedRows?: Set<variableData>;
+  setSelectedRows?: (selected: Set<variableData>) => void;
 }
 
 export interface paginationType {

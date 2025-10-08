@@ -1,11 +1,4 @@
-import React, {
-  ReactElement,
-  ReactEventHandler,
-  ReactHTMLElement,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DialogContent, DialogTrigger, Dialog } from "./dialog";
 import { Button } from "./button";
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -17,8 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { Textarea } from "./textarea";
 import { Input } from "./input";
-import { DataTableDemo } from "./table-app";
-import { variableData } from "@/redux/type";
+import { BASE_URL, variableData } from "@/redux/type";
 import { getEmails } from "@/utils/api";
 import {
   Table,
@@ -28,24 +20,43 @@ import {
   TableHeader,
   TableRow,
 } from "./table";
+import axios from "axios";
+
 interface FormInputs {
   subject: string;
   content: string;
+  to: string[];
 }
-export const EmailModal = ({
-  active,
-}: React.ComponentProps<"div"> & { active: boolean }) => {
+
+interface ChildProps {
+  selectedRows: Set<variableData>;
+  active: boolean;
+}
+
+export const EmailModal: React.FC<ChildProps> = ({ selectedRows, active }) => {
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors, isDirty },
-  } = useForm<FormInputs>();
-
-  const [showcase, setShowcase] = useState<Record<string, string>>({
-    subject: "E-mailonderwerp",
-    content: "E-mailinhoud",
+  } = useForm<FormInputs>({
+    mode: "onChange",
+    defaultValues: {
+      subject: "",
+      content: "",
+    },
   });
+  const {
+    register: registerTemplate,
+    handleSubmit: handleSubmitTemplate,
+    reset: resetTemplate,
+    setValue: setTempValue,
+    formState: { errors: templateErrors, isDirty: templateDirty },
+  } = useForm<FormInputs>({
+    mode: "onChange",
+    defaultValues: { subject: "", content: "" },
+  });
+
   const [pageState, setPageState] = useState({
     error: "",
     success: "",
@@ -54,7 +65,72 @@ export const EmailModal = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [emails, setEmails] = useState<variableData[]>([]);
   let email = useRef<EventTarget>(null);
-  const onSubmit: SubmitHandler<FormInputs> = (data) => {};
+
+  const onSubmit: SubmitHandler<FormInputs> = async (data) => {
+    const to = Array.from(selectedRows).map((value) => value.email);
+
+    data = {
+      ...data,
+      subject: data.subject,
+      content: data.content,
+      to: to,
+    };
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/send-email`,
+        {
+          ...data,
+          //  array of clients id
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      setPageState((prev) => {
+        return { ...prev, success: "Emails Sent Successfully" };
+      });
+      window.location.reload();
+    } catch (e) {
+      setPageState((prev) => {
+        return { ...prev, error: e instanceof Error ? e.message : String(e) };
+      });
+    }
+  };
+
+  const onSubmitTemplate: SubmitHandler<FormInputs> = async (data) => {
+    const selectedEmail =
+      emails[emails.findIndex((e) => e.id == (email as any)?.current?.id)];
+
+    const to = Array.from(selectedRows).map((value) => value.email);
+
+    data = {
+      ...data,
+      subject: selectedEmail.subject,
+      content: selectedEmail.content,
+      to: to,
+    };
+
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/send-email`,
+        {
+          ...data,
+          //  array of clients id
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      setPageState((prev) => {
+        return { ...prev, success: "Emails Sent Successfully" };
+      });
+      window.location.reload();
+    } catch (e) {
+      setPageState((prev) => {
+        return { ...prev, error: e instanceof Error ? e.message : String(e) };
+      });
+    }
+  };
 
   useEffect(() => {
     const loadEmails = async () => {
@@ -77,6 +153,8 @@ export const EmailModal = ({
 
   const choiceHandler = (e: React.MouseEvent) => {
     email.current = (e as any).target.parentElement;
+    console.log(email.current);
+    setTempValue("subject", e.currentTarget.innerHTML, { shouldDirty: true });
     Array.from((email as any).current.parentNode.children).forEach(
       (element: any) => {
         element.classList.remove("bg-emerald-100");
@@ -89,8 +167,14 @@ export const EmailModal = ({
     <div>
       <Dialog>
         {" "}
-        <DialogTrigger asChild>
-          <Button variant="outline">Send Email</Button>
+        <DialogTrigger asChild className="cursor-pointer">
+          <Button
+            variant="outline"
+            disabled={!active}
+            className="bg-[#00A1E0] text-white hover:text-[#00A1E0] hover:bg-white"
+          >
+            Send Email
+          </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[725px]">
           <Accordion type="single" collapsible>
@@ -100,7 +184,7 @@ export const EmailModal = ({
               </AccordionTrigger>
               <AccordionContent>
                 <form
-                  onSubmit={handleSubmit(onSubmit)}
+                  onSubmit={handleSubmitTemplate(onSubmitTemplate)}
                   className="flex flex-col items-center gap-6"
                 >
                   <Table className=" overflow-hidden">
@@ -131,7 +215,19 @@ export const EmailModal = ({
                       ))}
                     </TableBody>
                   </Table>
-                  <Button className="px-6 py-4" disabled>
+
+                  {pageState.error && (
+                    <p className="text-red-500 text-sm font-medium w-full text-center">
+                      {pageState.error}
+                    </p>
+                  )}
+                  {pageState.success && (
+                    <p className="text-green-500 text-sm font-medium w-full text-center">
+                      {pageState.success}
+                    </p>
+                  )}
+
+                  <Button disabled={!templateDirty} className="px-6 py-4">
                     Send
                   </Button>
                 </form>
@@ -144,23 +240,36 @@ export const EmailModal = ({
                   <h1 className="text-xl md:text-2xl font-semibold mb-10">
                     abonnement:
                   </h1>
-                  <div className="flex flex-col md:flex md:flex-col md:gap-10 md:items-center ">
+                  <div className="flex flex-col gap-8">
                     <div className="flex justify-between items-center gap-5 min-w-[40%]">
                       <label htmlFor="subject" className="flex-1">
                         onderwerp:
                       </label>
                       <Input
-                        {...register("subject")}
+                        {...register("subject", {
+                          required: "Subject is required",
+                          minLength: {
+                            value: 2,
+                            message: "Subject must be at least 2 characters",
+                          },
+                        })}
                         id="subject"
                         className="max-w-[350px] text-lg font-medium"
                       />
                     </div>
+
                     <div className="flex justify-between items-center gap-5 min-w-[40%]">
                       <label htmlFor="inhoud" className="">
                         inhoud:
                       </label>
                       <Textarea
-                        {...register("content")}
+                        {...register("content", {
+                          required: "Content is required",
+                          minLength: {
+                            value: 10,
+                            message: "Content must be at least 10 characters",
+                          },
+                        })}
                         id="inhoud"
                         className="max-w-[350px] max-h-[220px] text-lg font-medium"
                       />

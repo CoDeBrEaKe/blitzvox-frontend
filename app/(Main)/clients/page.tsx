@@ -20,13 +20,22 @@ import { variableData } from "@/redux/type";
 import { getClients } from "@/utils/api";
 import Link from "next/link";
 import { EmailModal } from "@/components/ui/emailModal";
+
 export default function Home() {
+  const [active, setActive] = React.useState<boolean>(false);
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
   const [clientsData, setClientsData] = React.useState({
     clients: [],
     pagination: {},
   });
+  const [selectedRows, setSelectedRows] = React.useState<Set<variableData>>(
+    new Set()
+  );
+
+  const handleSelection = (newSelection: Set<variableData>) => {
+    setSelectedRows(newSelection);
+  };
 
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -110,6 +119,13 @@ export default function Home() {
       }));
     }
   };
+  useEffect(() => {
+    if (Array.from(selectedRows).length) {
+      setActive(true);
+    } else {
+      setActive(false);
+    }
+  }, [selectedRows]);
 
   const toggleShowcase = (column: string) => {
     setFilterShow((prev) => {
@@ -196,7 +212,12 @@ export default function Home() {
               {"Klant toevoegen"}
             </Link>
           </div>
-          <EmailModal active={false} className="my-5"></EmailModal>
+          <div className="mx-2 ">
+            <EmailModal
+              active={active}
+              selectedRows={selectedRows}
+            ></EmailModal>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
@@ -220,7 +241,13 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DataTableDemo data={clients} showcase={filterShow} url={"clients"} />
+        <DataTableDemo
+          data={clients}
+          showcase={filterShow}
+          url={"clients"}
+          selectedRows={selectedRows}
+          setSelectedRows={handleSelection}
+        />
         {/* Pagination Controls */}
         <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}
