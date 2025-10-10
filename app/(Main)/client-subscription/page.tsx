@@ -87,6 +87,10 @@ export default function Home() {
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: newPage,
+      }));
     }
   };
   const toggleShowcase = (column: string) => {
