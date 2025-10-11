@@ -22,7 +22,7 @@ import { useAppSelector } from "@/redux/hooks";
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
-
+  const user = useAppSelector((state) => state.auth);
   const [filterShow, setFilterShow] = useState<Record<string, string>>({
     select: "select",
     name: "Name",
