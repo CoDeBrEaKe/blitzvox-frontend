@@ -9,7 +9,7 @@ const roboto = Roboto({
   display: "swap", // Recommended for font loading
 });
 export const metadata: Metadata = {
-  title: "Bliztvox Portal",
+  title: "Blitzvox Portal",
   description: "Blitzvox CRM",
 };
 
