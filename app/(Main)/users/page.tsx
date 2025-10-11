@@ -161,7 +161,7 @@ export default function Home() {
                 {"Filter"}
               </Button>
             </form>
-            {/* {user?.role == "admin" ? (
+            {user?.role == "admin" ? (
               <Link
                 href={"/users/create"}
                 className="ml-auto text-sm text-center font-medium rounded-md flex px-3  items-center  cursor-pointer bg-emerald-800 hover:bg-emerald-800 text-white hover:text-white shadow"
@@ -170,7 +170,7 @@ export default function Home() {
               </Link>
             ) : (
               ""
-            )} */}
+            )}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
