@@ -13,9 +13,8 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 
 interface FormData {
-  sub_name: string;
-  company: string;
-  sub_id: number;
+  sub_type: string;
+  sub_image: string;
 }
 
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
@@ -27,7 +26,6 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     error: "",
     success: "",
   });
-  const { id } = React.use(params);
 
   // Main form for client data
   const {
@@ -42,12 +40,16 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await axios.post(`${BASE_URL}/subscriptions`, data, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.post(
+        `${BASE_URL}/subscription-types`,
+        data,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       if (response.status == 200 || response.status == 201) {
         setPageState({
           ...pageState,
@@ -89,43 +91,24 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         <h1 className="text-xl md:text-2xl font-semibold mb-10">abonnement:</h1>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="sub_name" className="flex-1">
+            <label htmlFor="sub_type" className="flex-1">
               abonnementsnaam:
             </label>
             <Input
-              {...register("sub_name")}
+              {...register("sub_type")}
               id="sub_name"
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="comapny" className="flex-1">
-              Firma:
+            <label htmlFor="Image" className="flex-1">
+              Image:
             </label>
             <Input
-              required
               id="comapny"
-              {...register("company")}
+              {...register("sub_image")}
               className="max-w-[350px] text-lg font-medium"
             />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
-          <div className="flex justify-between items-center gap-5 min-w-[40%] mt-6">
-            <label htmlFor="your_order_num" className="flex-1">
-              abonnementstype:
-            </label>
-            <select
-              required
-              id="sub_type"
-              {...register("sub_id")}
-              className="max-w-[350px] shadow border-1 p-2 rounded-md text-base font-medium"
-            >
-              <option selected>Kies type</option>
-              {subscriptionTypes.map((sub: any) => (
-                <option value={`${sub.id}`}>{sub.sub_type}</option>
-              ))}
-            </select>
           </div>
         </div>
 
