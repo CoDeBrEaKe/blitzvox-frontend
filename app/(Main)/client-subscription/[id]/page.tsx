@@ -35,6 +35,7 @@ interface FormData {
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   const [clientSub, setClientSub] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [pageState, setPageState] = useState({
     error: "",
     success: "",
@@ -52,6 +53,12 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     mode: "onChange",
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   // Submit main client form
   const onSubmit = async (data: FormData) => {
     data = {
@@ -59,6 +66,32 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
       rl: data.rl == "true" ? true : false,
       paid: data.paid == "true" ? true : false,
     };
+    let updatedData = data;
+    // Upload file if selected
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("firstName", clientSub["client.first_name"] || "");
+      formData.append("lastName", clientSub["client.family_name"] || "");
+      formData.append("clientId", id.toString());
+      formData.append("subscriptionId", clientSub["subscription.id"] || "");
+
+      const uploadResponse = await axios.post(
+        `${BASE_URL}/api/documents/upload`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (uploadResponse.status === 200) {
+        const { key } = uploadResponse.data;
+        updatedData = { ...data, documents_link: key }; // Update with S3 key
+      }
+    }
     try {
       const response = await axios.put(
         `${BASE_URL}/client-subscription/${id}`,
@@ -434,12 +467,25 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               Dokumente hochladen:
             </label>
             <Input
-              // {...register("documents_link")}
               id="documents_link"
               type="file"
+              onChange={handleFileChange}
               className="max-w-[350px]"
             />
           </div>
+          {clientSub.documents_link && (
+            <div className="flex justify-between items-center gap-5 min-w-[40%]">
+              <label className="flex-1">Documents:</label>
+              <a
+                href={clientSub.documents_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 underline"
+              >
+                View Documents
+              </a>
+            </div>
+          )}
         </div>
         {pageState.error && (
           <p className="text-red-500 text-sm font-medium w-full text-center">
