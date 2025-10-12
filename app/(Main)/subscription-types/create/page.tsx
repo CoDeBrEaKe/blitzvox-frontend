@@ -10,6 +10,8 @@ import axios from "axios";
 interface FormData {
   sub_type: string;
   sub_image: string;
+  sub_type: string;
+  sub_image: string;
 }
 
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
@@ -20,7 +22,6 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     success: "",
     loading: false,
   });
-  const { id } = React.use(params);
 
   // Main form for client data
   const {

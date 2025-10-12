@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogHeader, DialogContent } from "./dialog";
 import { Input } from "./input";
 import { Button } from "./button";
@@ -8,7 +8,7 @@ import axios from "axios";
 import { BASE_URL } from "@/redux/type";
 
 interface form {
-  csvfile: File;
+  csvfile: FileList;
 }
 const Form: React.FC = () => {
   const {
@@ -16,9 +16,34 @@ const Form: React.FC = () => {
     formState: { isDirty },
     handleSubmit,
   } = useForm<form>();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const onSubmit: SubmitHandler<form> = async (data) => {
-    const res = axios.post(`${BASE_URL}/import-file`);
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", data.csvfile[0]);
+
+      const res = await axios.post(`${BASE_URL}/import-file`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true,
+      });
+      setSuccess(res.data.message);
+    } catch (err) {
+      setError(
+        axios.isAxiosError(err)
+          ? err.response?.data?.message || "Failed to upload file"
+          : "An unexpected error occurred"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -32,14 +57,22 @@ const Form: React.FC = () => {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        Upload your csv file
+        <DialogHeader>Upload your CSV file</DialogHeader>
         <form
           encType="multipart/form-data"
           className="flex flex-col gap-10 items-center"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <Input type="file" />
-          <Button>Import Data</Button>
+          <Input
+            type="file"
+            accept=".csv"
+            {...register("csvfile", { required: true })}
+          />
+          <Button type="submit" disabled={isLoading || !isDirty}>
+            {isLoading ? "Uploading..." : "Import Data"}
+          </Button>
+          {error && <p className="text-red-500">{error}</p>}
+          {success && <p className="text-green-500">{success}</p>}
         </form>
       </DialogContent>
     </Dialog>

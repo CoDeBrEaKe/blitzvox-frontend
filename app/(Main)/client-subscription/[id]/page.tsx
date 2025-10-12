@@ -35,6 +35,7 @@ interface FormData {
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   const [clientSub, setClientSub] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [pageState, setPageState] = useState({
     error: "",
     success: "",
