@@ -17,6 +17,8 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     {}
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+
   const [pageState, setPageState] = useState({
     error: "",
     success: "",
@@ -27,15 +29,51 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   const {
     register,
     handleSubmit,
-
+    setValue,
     formState: { errors, isDirty, isValid },
     reset,
   } = useForm<FormData>({
     mode: "onChange",
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+      setValue("sub_image", e.target.files[0].name, { shouldDirty: true });
+    } else {
+      setValue("sub_image", "", { shouldDirty: false });
+    }
+  };
   // Submit main client form
   const onSubmit = async (data: FormData) => {
+    if (selectedImage) {
+      const formData = new FormData();
+      formData.append("file", selectedImage);
+      formData.append("data", JSON.stringify({ ...data }));
+      try {
+        const response = await axios.put(
+          `${BASE_URL}/subscription-types/${id}`,
+          formData,
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        if (response.status == 200 || response.status == 201) {
+          setPageState({
+            ...pageState,
+            success: "Abbointe succesvol bijgewerkt",
+            error: "",
+          });
+          reset(data);
+        }
+      } catch (e: any) {
+        setPageState({ ...pageState, error: e.response.data.message });
+        console.error();
+      }
+    }
     try {
       const response = await axios.put(
         `${BASE_URL}/subscription-types/${id}`,
@@ -106,24 +144,24 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
-          <div className="flex items-center gap-5 min-w-[40%]">
-            <label htmlFor="comapny" className="flex-1">
-              Icon:
-            </label>
-            <img
-              src={subscriptionType.sub_image}
-              className="max-w-[350px] flex-1 font-medium"
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%] mt-6">
             <label htmlFor="your_order_num" className="flex-1">
               Pictogram toevoegen:
             </label>
+            <img
+              src={subscriptionType.sub_image}
+              className="max-w-[350px] text-lg font-medium"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-center py-5">
+          <div className="flex justify-center items-center gap-5 min-w-[40%] mt-6">
+            <label htmlFor="your_order_num" className="flex-1">
+              upload:
+            </label>
             <Input
-              id="sub_type"
-              {...register("sub_image")}
+              id="sub_image"
+              onChange={handleFileChange}
               type="file"
               className="max-w-[350px] text-lg font-medium"
             />

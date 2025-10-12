@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 
 import { useAppSelector } from "@/redux/hooks";
-import { getSubscriptions } from "@/utils/api";
+import { getClientData, getSubscriptions } from "@/utils/api";
 
 interface FormData {
   user_id: number;
@@ -22,15 +22,15 @@ interface FormData {
   consumption: string;
   night_consumption: string;
   paid: boolean | string;
-  paid_date: string;
+  paid_date: string | null;
   rl: boolean | string;
-  rl_date: string;
-  termination_date: number | null;
-  restablish_date: string;
-  sign_date: string;
-  start_importing: string;
-  end_importing: string;
-  contract_end: string;
+  rl_date: string | null;
+  termination_date: string | null;
+  restablish_date: string | null;
+  sign_date: string | null;
+  start_importing: string | null;
+  end_importing: string | null;
+  contract_end: string | null;
   contract_time: string;
   family_count: string;
   person_num: string;
@@ -47,8 +47,9 @@ const Page = () => {
   const { user } = useAppSelector((state) => state.auth);
   const searchParams = useSearchParams();
   const clientId = searchParams.get("client");
+  const [client, setClient] = useState<variableData>({});
   const id = clientId ? parseInt(clientId) : NaN;
-  console.log(id);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for file
   // Main form for client data
   const {
     register,
@@ -65,13 +66,24 @@ const Page = () => {
   useEffect(() => {
     const getsubs = async () => {
       const subscriptions = await getSubscriptions();
-      if (subscriptions) {
+      const client = await getClientData(id);
+      if (subscriptions && client) {
         setSubscriptions(subscriptions.subscriptions);
+        setClient(client);
       }
     };
     getsubs();
   }, []);
 
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+      setValue("documents_link", e.target.files[0].name, { shouldDirty: true });
+    } else {
+      setValue("documents_link", "", { shouldDirty: false });
+    }
+  };
   // Submit main client form
   const onSubmit = async (data: FormData) => {
     data = {
@@ -80,12 +92,46 @@ const Page = () => {
       user_id: (user as any)?.id,
       rl: data.rl == "true" ? true : false,
       paid: data.paid == "true" ? true : false,
-      documents_link: "",
+      documents_link: `${BASE_URL}/api/documents/${client.id}/${data.sub_id}/${client.first_name}`,
+      paid_date: data.paid_date || null,
+      restablish_date: data.restablish_date || null,
+      rl_date: data.rl_date || null,
+      sign_date: data.sign_date || null,
+      start_importing: data.start_importing || null,
+      end_importing: data.end_importing || null,
+      termination_date: data.termination_date || null,
     };
     try {
+      let updatedData = data;
+      // Upload file if selected
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("firstName", client.first_name || "");
+        formData.append("clientId", client.id);
+        formData.append("subscriptionId", data.sub_id.toString() || "");
+        const uploadResponse = await axios.post(
+          `${BASE_URL}/api/documents/upload`,
+          formData,
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        if (uploadResponse.status === 200) {
+          const { key } = uploadResponse.data;
+          updatedData = {
+            ...data,
+          };
+        }
+      }
+
+      // Update client subscription
       const response = await axios.post(
         `${BASE_URL}/client-subscription`,
-        { ...data },
+        updatedData,
         {
           withCredentials: true,
           headers: {
@@ -93,17 +139,22 @@ const Page = () => {
           },
         }
       );
-      if (response.status == 200 || response.status == 201) {
+
+      if (response.status === 200 || response.status === 201) {
         setPageState({
           ...pageState,
           success: "Abbointe succesvol bijgewerkt",
           error: "",
         });
-        reset(data);
+        reset(updatedData);
+        setSelectedFile(null); // Clear file after successful upload
       }
     } catch (e: any) {
-      setPageState({ ...pageState, error: e.response.data.message });
-      console.error();
+      setPageState({
+        ...pageState,
+        error: e.response?.data?.message || "Error",
+      });
+      console.error(e);
     }
   };
 
@@ -225,6 +276,7 @@ const Page = () => {
             </label>
             <Input
               {...register("consumption")}
+              type="number"
               id="consumption"
               className="max-w-[350px]"
             />
@@ -236,6 +288,7 @@ const Page = () => {
             <Input
               {...register("night_consumption")}
               id="night_consumption"
+              type="number"
               className="max-w-[350px]"
             />
           </div>
@@ -363,18 +416,19 @@ const Page = () => {
             />
           </div>
         </div>
-        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-center my-20">
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:justify-between md:items-center justify-center my-20">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="documents_link" className="flex-1">
               Dokumente hochladen:
             </label>
             <Input
-              {...register("documents_link")}
               id="documents_link"
               type="file"
+              onChange={handleFileChange} // Handle file selection
               className="max-w-[350px]"
             />
           </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]"></div>
         </div>
         {pageState.error && (
           <p className="text-red-500 text-sm font-medium w-full text-center">

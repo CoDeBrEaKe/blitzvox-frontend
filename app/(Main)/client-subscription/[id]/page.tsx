@@ -1,10 +1,10 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getClientSubData, getUsers } from "@/utils/api";
+import { getClientSubData } from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "@/redux/type";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import axios from "axios";
 
 interface FormData {
@@ -19,7 +19,7 @@ interface FormData {
   paid_date: string;
   rl: string | boolean;
   rl_date: string;
-  termination_date: number | null;
+  termination_date: string | null;
   restablish_date: string;
   sign_date: string;
   start_importing: string;
@@ -39,30 +39,71 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     error: "",
     success: "",
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for file
+
   const { id } = React.use(params);
 
-  // Main form for client data
   const {
     register,
     handleSubmit,
-
     formState: { errors, isDirty, isValid },
     reset,
+    setValue,
   } = useForm<FormData>({
     mode: "onChange",
   });
 
-  // Submit main client form
-  const onSubmit = async (data: FormData) => {
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+      setValue("documents_link", e.target.files[0].name, { shouldDirty: true });
+    } else {
+      setValue("documents_link", "", { shouldDirty: false });
+    }
+  };
+
+  // Submit handler for form data and file
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
     data = {
       ...data,
-      rl: data.rl == "true" ? true : false,
-      paid: data.paid == "true" ? true : false,
+      rl: data.rl === "true",
+      paid: data.paid === "true",
+      documents_link: `${BASE_URL}/api/documents/${clientSub["client.id"]}/${clientSub["subscription.id"]}/${clientSub["client.first_name"]}`,
     };
     try {
+      let updatedData = data;
+      // Upload file if selected
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("firstName", clientSub["client.first_name"] || "");
+        formData.append("lastName", clientSub["client.family_name"] || "");
+        formData.append("clientId", clientSub["client.id"]);
+        formData.append("subscriptionId", clientSub["subscription.id"] || "");
+        const uploadResponse = await axios.post(
+          `${BASE_URL}/api/documents/upload`,
+          formData,
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        if (uploadResponse.status === 200) {
+          const { key } = uploadResponse.data;
+          updatedData = {
+            ...data,
+          };
+        }
+      }
+
+      // Update client subscription
+      console.log(updatedData);
       const response = await axios.put(
         `${BASE_URL}/client-subscription/${id}`,
-        data,
+        updatedData,
         {
           withCredentials: true,
           headers: {
@@ -70,17 +111,22 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           },
         }
       );
-      if (response.status == 200 || response.status == 201) {
+
+      if (response.status === 200 || response.status === 201) {
         setPageState({
           ...pageState,
           success: "Abbointe succesvol bijgewerkt",
           error: "",
         });
-        reset(data);
+        reset(updatedData);
+        setSelectedFile(null); // Clear file after successful upload
       }
     } catch (e: any) {
-      setPageState({ ...pageState, error: e.response.data.message });
-      console.error();
+      setPageState({
+        ...pageState,
+        error: e.response?.data?.message || "Error",
+      });
+      console.error(e);
     }
   };
 
@@ -91,7 +137,6 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         const data = await getClientSubData(id);
         setClientSub(data);
 
-        // Reset form with client data when it's loaded
         if (data) {
           reset({
             order_num: data.order_num || "",
@@ -125,7 +170,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
       }
     }
     getClientsub();
-  }, [reset]);
+  }, [reset, id]);
 
   if (isLoading) {
     return (
@@ -152,7 +197,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               value={
                 clientSub["client.first_name"] +
                 (clientSub["client.family_name"]
-                  ? clientSub["client.family_name"]
+                  ? " " + clientSub["client.family_name"]
                   : "")
               }
               className="max-w-[350px]"
@@ -175,7 +220,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               Ihre Auftr.-Nr.:
             </label>
             <Input
-              id="family_name"
+              id="your_order_num"
               {...register("your_order_num")}
               className="max-w-[350px] text-lg font-medium"
             />
@@ -206,13 +251,13 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="street" className="flex-1">
-              Unterschriftsdatum”:
+            <label htmlFor="sign_date" className="flex-1">
+              Unterschriftsdatum:
             </label>
             <Input
               {...register("sign_date")}
               type="date"
-              id="street"
+              id="sign_date"
               className="max-w-[350px]"
             />
           </div>
@@ -314,7 +359,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="end_importing" className="flex-1">
-              Endlieferdatum :
+              Endlieferdatum:
             </label>
             <Input
               {...register("end_importing")}
@@ -336,13 +381,13 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             >
               <option
                 value="1 Year"
-                selected={clientSub.contract_time == "1 Year"}
+                selected={clientSub.contract_time === "1 Year"}
               >
                 Ein Jahr
               </option>
               <option
                 value="2 Years"
-                selected={clientSub.contract_time == "2 Years"}
+                selected={clientSub.contract_time === "2 Years"}
               >
                 zwei Jahr
               </option>
@@ -368,10 +413,14 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="cost" className="flex-1">
+            <label htmlFor="persons_name" className="flex-1">
               persons_name:
             </label>
-            <Input id="cost" className="max-w-[350px]" />
+            <Input
+              {...register("persons_name")}
+              id="persons_name"
+              className="max-w-[350px]"
+            />
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
@@ -381,10 +430,10 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               VAP:
             </label>
             <select {...register("paid")} id="paid" className="max-w-[350px]">
-              <option value={"true"} selected={clientSub.paid == "true"}>
+              <option value="true" selected={clientSub.paid === true}>
                 Yes
               </option>
-              <option value={"false"} selected={clientSub.paid == "false"}>
+              <option value="false" selected={clientSub.paid === false}>
                 No
               </option>
             </select>
@@ -408,10 +457,10 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               RL:
             </label>
             <select {...register("rl")} id="rl" className="max-w-[350px]">
-              <option value={"true"} selected={clientSub.rl == "true"}>
+              <option value="true" selected={clientSub.rl === true}>
                 Yes
               </option>
-              <option value={"false"} selected={clientSub.rl == "false"}>
+              <option value="false" selected={clientSub.rl === false}>
                 No
               </option>
             </select>
@@ -424,21 +473,36 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               {...register("rl_date")}
               id="rl_date"
               type="date"
-              className="max-w-[350px] "
+              className="max-w-[350px]"
             />
           </div>
         </div>
-        <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-center my-20">
+        <div className="flex flex-col gap-4 md:flex md:flex-row md:justify-between md:items-center justify-center my-20">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="documents_link" className="flex-1">
               Dokumente hochladen:
             </label>
             <Input
-              // {...register("documents_link")}
               id="documents_link"
               type="file"
+              onChange={handleFileChange} // Handle file selection
               className="max-w-[350px]"
             />
+          </div>
+          <div className="flex justify-between items-center gap-5 min-w-[40%]">
+            {clientSub.documents_link && (
+              <div className="flex justify-between items-center gap-5 min-w-[40%]">
+                <label className="flex-1">Documents:</label>
+                <a
+                  href={clientSub.documents_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 underline"
+                >
+                  View Documents
+                </a>
+              </div>
+            )}
           </div>
         </div>
         {pageState.error && (

@@ -21,7 +21,6 @@ import Link from "next/link";
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
-
   const [filterShow, setFilterShow] = useState<Record<string, string>>({
     select: "select",
     sub_type: "abonnementstype",
