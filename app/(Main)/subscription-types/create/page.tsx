@@ -10,8 +10,6 @@ import axios from "axios";
 interface FormData {
   sub_type: string;
   sub_image: string;
-  sub_type: string;
-  sub_image: string;
 }
 
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
