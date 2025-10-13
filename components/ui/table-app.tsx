@@ -17,6 +17,7 @@ import {
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useAppSelector } from "@/redux/hooks";
+import { getClientSubs } from "@/utils/api";
 
 export function DataTableDemo({
   data,
@@ -24,6 +25,7 @@ export function DataTableDemo({
   url,
   selectedRows,
   setSelectedRows,
+  query,
 }: DataTableDemoProps) {
   // Flexible column visibility - can be any string keys
   const router = useRouter();
@@ -31,22 +33,30 @@ export function DataTableDemo({
 
   // Handle row selection
   const toggleRowSelection = (row: variableData): void => {
-    const newSelected = new Set(selectedRows);
+    let newSelected = new Set(selectedRows);
     if (newSelected.has(row)) {
       newSelected.delete(row);
     } else {
+      if (selectedRows!.size > 10) {
+        newSelected = new Set([row]);
+      }
       newSelected.add(row);
     }
     if (setSelectedRows) setSelectedRows(newSelected);
   };
 
-  // const toggleAllRows = (): void => {
-  //   if (selectedRows.size === data.length) {
-  //     setSelectedRows(new Set());
-  //   } else {
-  //     setSelectedRows(new Set(data.map((row) => row.id)));
-  //   }
-  // };
+  const toggleAllRows = async (): Promise<void> => {
+    const res = await getClientSubs(query, { page: 1 });
+    const clientSubs = res.clientSubs;
+    if (setSelectedRows) {
+      if (selectedRows?.size == clientSubs.length) {
+        setSelectedRows(new Set());
+      } else {
+        let newset = clientSubs.map((row: variableData) => row);
+        setSelectedRows(new Set(newset));
+      }
+    }
+  };
 
   // Filter data by email
   return (
@@ -56,6 +66,15 @@ export function DataTableDemo({
           <TableHeader>
             <TableRow>
               {/* Dynamic columns from showcase */}
+              <TableCell>
+                <Checkbox
+                  checked={
+                    selectedRows ? selectedRows?.size > data.length : false
+                  }
+                  onCheckedChange={toggleAllRows}
+                  aria-label="Select row"
+                />
+              </TableCell>
               {Object.keys(showcase).map(
                 (column) =>
                   showcase[column] != "" && (
@@ -112,7 +131,12 @@ export function DataTableDemo({
                           key={showcase[key]}
                           onClick={() => router.push(`/${url}/${row.id}`)}
                         >
-                          {row[key].map((sub: any) => sub.type.sub_image)}
+                          {row[key].map((sub: any) => (
+                            <img
+                              src={sub.type.sub_image}
+                              className="w-6 h-6 inline-block mr-1"
+                            />
+                          ))}
                         </TableCell>
                       ) : key == "feedbacks" ? (
                         <TableCell
@@ -185,7 +209,11 @@ export function DataTableDemo({
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
-          {selectedRows?.size} of {data.length} row(s) selected.
+          {selectedRows?.size} of{" "}
+          {selectedRows && selectedRows!.size > data.length
+            ? selectedRows!.size
+            : data.length}{" "}
+          row(s) selected.
         </div>
       </div>
     </div>

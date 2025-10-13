@@ -216,6 +216,7 @@ export default function Home() {
           url={"client-subscription"}
           selectedRows={selectedRows}
           setSelectedRows={handleSelection}
+          query={filterOn && filter ? `${filterOn}${filter}` : ""}
         />
         {/* Pagination Controls */}
         <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">

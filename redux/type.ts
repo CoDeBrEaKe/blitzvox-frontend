@@ -15,6 +15,7 @@ export interface DataTableDemoProps {
   showcase: Record<string, string>;
   url: string;
   selectedRows?: Set<variableData>;
+  query?: string;
   setSelectedRows?: (selected: Set<variableData>) => void;
 }
 

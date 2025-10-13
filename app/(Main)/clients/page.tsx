@@ -120,6 +120,7 @@ export default function Home() {
       }));
     }
   };
+
   useEffect(() => {
     if (Array.from(selectedRows).length) {
       setActive(true);

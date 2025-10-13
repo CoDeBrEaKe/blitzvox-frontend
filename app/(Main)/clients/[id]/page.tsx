@@ -369,7 +369,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <div className="flex justify-center items-center gap-4">
               {client.subscriptions?.map((sub: any, index: number) => (
                 <div key={index} className="text-sm">
-                  {sub.type?.sub_image || "N/A"}
+                  <img src={sub.type?.sub_image || "N/A"} className="w-6 h-6" />
                 </div>
               ))}
             </div>

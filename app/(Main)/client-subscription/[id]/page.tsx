@@ -1,11 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getClientSubData } from "@/utils/api";
+import { getClientSubData, getFeedbacks } from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "@/redux/type";
 import { useForm, SubmitHandler } from "react-hook-form";
 import axios from "axios";
+import { Textarea } from "@/components/ui/textarea";
 
 interface FormData {
   order_num: string;
@@ -31,11 +32,16 @@ interface FormData {
   persons_name: string;
   documents_link: string;
 }
-
+interface FeedbackFormData {
+  feedback: string;
+}
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   const [clientSub, setClientSub] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [feedbacks, setFeedbacks] = useState<any[]>([]); // Separate state for feedbacks
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+
   const [pageState, setPageState] = useState({
     error: "",
     success: "",
@@ -52,6 +58,12 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   } = useForm<FormData>({
     mode: "onChange",
   });
+  const {
+    register: registerFeedback,
+    handleSubmit: handleSubmitFeedback,
+    reset: resetFeedback,
+    formState: { errors: feedbackErrors },
+  } = useForm<FeedbackFormData>();
 
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,14 +141,50 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
       console.error(e);
     }
   };
+  const onSubmitFeedback = async (data: FeedbackFormData) => {
+    try {
+      setIsSubmittingFeedback(true);
 
+      const response = await axios.post(
+        `${BASE_URL}/feedbacks`, // Adjust URL as needed
+        {
+          ...data,
+          client_sub_id: id, // Link feedback to this client
+          created_at: new Date().toISOString(),
+        },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 201 || response.status === 200) {
+        alert("Feedback added sucessfully!");
+        resetFeedback(); // Clear the feedback form
+
+        // Refresh feedbacks list
+        const feedbacks = await getFeedbacks(id, "sub");
+        setFeedbacks(feedbacks || []);
+      } else {
+        alert("Failed to add feedback");
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert("Error adding feedback");
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
   useEffect(() => {
     async function getClientsub() {
       try {
         setIsLoading(true);
         const data = await getClientSubData(id);
+        const feedbacks = await getFeedbacks(id, "sub");
         setClientSub(data);
-
+        setFeedbacks(feedbacks || []);
         if (data) {
           reset({
             order_num: data.order_num || "",
@@ -183,9 +231,19 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   return (
     <div className="px-8 py-4">
       <form onSubmit={handleSubmit(onSubmit)}>
-        <h1 className="text-xl md:text-2xl font-semibold mb-10">
-          Verträgedetails:
-        </h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl md:text-2xl font-semibold mb-10">
+            Verträgedetails:
+          </h1>
+          <a
+            className="btn px-4 py-2 font-semibold text-base block bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 cursor-pointer"
+            href={`/clients/${clientSub["client.id"]}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Klienta
+          </a>
+        </div>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
             <label htmlFor="name" className="flex-1">
@@ -528,6 +586,65 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           {isDirty ? "Änderungen speichern" : "keine Änderungen"}
         </Button>
       </form>
+      <hr className="bg-[#eee] h-[1px] w-full mt-6" />
+      <h2 className="text-xl md:text-2xl font-semibold py-10">Feedbacks</h2>
+      <form
+        onSubmit={handleSubmitFeedback(onSubmitFeedback)}
+        className="flex flex-col justify-between gap-8 items-center w-[80%] lg:flex md:w-[80%] m-auto mb-8 p-6 bg-gray-50 rounded-lg"
+      >
+        <div className="flex justify-between items-center lg:min-w-[70%] gap-4">
+          <label htmlFor="feedback" className="flex-1 text-sm md:font-medium">
+            New Feedback:
+          </label>
+          <Textarea
+            {...registerFeedback("feedback", {
+              required: "Feedback is required",
+              minLength: {
+                value: 5,
+                message: "Feedback must be at least 5 characters",
+              },
+            })}
+            id="feedback"
+            className="max-w-[500px] min-h-[80px]"
+            placeholder="Enter your feedback here..."
+          />
+        </div>
+        <div className="flex justify-between items-center min-w-[20%] gap-4">
+          <Button
+            type="submit"
+            disabled={isSubmittingFeedback}
+            className="bg-[#e4674b] hover:bg-[#d4563a] cursor-pointer"
+          >
+            {isSubmittingFeedback ? "Adding..." : "Add Feedback"}
+          </Button>
+        </div>
+      </form>
+
+      {/* Display validation errors for feedback form */}
+      {feedbackErrors.feedback && (
+        <p className="text-red-500 text-center mb-4">
+          {feedbackErrors.feedback.message}
+        </p>
+      )}
+      {feedbacks?.map((feed: any, index: number) => (
+        <div
+          key={index}
+          className="flex justify-between gap-8 items-center w-[100%] lg:w-[70%] m-auto mb-4 shadow px-6 py-2 rounded-xl"
+        >
+          <div className="flex justify-between items-center min-w-[40%] gap-4">
+            <p className="flex-1 font-medium">Feedback:</p>
+            <p className="max-w-[650px] text-sm lg:text-base">
+              {feed.feedback}
+            </p>
+          </div>
+          <div className="flex justify-between items-center min-w-[40%] gap-4">
+            <p className="flex-1 font-medium">Datum:</p>
+            <p className="max-w-[650px] text-sm lg:text-base">
+              {feed.created_at?.split("T")[0]}
+            </p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

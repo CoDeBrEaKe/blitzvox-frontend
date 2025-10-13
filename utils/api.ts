@@ -48,7 +48,7 @@ export async function getUserData(id: number) {
 
 export async function getClientSubs(
   query: string = "",
-  params: object = { page: 1, limit: 10 }
+  params: object = { page: 1, limit: undefined }
 ) {
   const req: variableData = await axios.get(
     `${BASE_URL}/client-subscription?page=${(params as any).page}&limit=${
@@ -136,4 +136,14 @@ export async function getEmailData(id: number) {
     withCredentials: true,
   });
   return req.data.email;
+}
+
+export async function getFeedbacks(id: number, client: string) {
+  const req: variableData = await axios.get(
+    `${BASE_URL}/feedbacks/${id}/${client}`,
+    {
+      withCredentials: true,
+    }
+  );
+  return req.data.feedbacks;
 }
