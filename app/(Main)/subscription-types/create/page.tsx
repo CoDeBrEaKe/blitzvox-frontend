@@ -42,11 +42,12 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   };
   // Submit main client form
   const onSubmit = async (data: FormData) => {
+    setPageState({ ...pageState, loading: true });
+
     if (selectedImage) {
       const formData = new FormData();
       formData.append("file", selectedImage);
       formData.append("data", JSON.stringify({ ...data }));
-      console.log("formData", formData.get("file"));
       try {
         const response = await axios.post(
           `${BASE_URL}/subscription-types`,
@@ -63,36 +64,45 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             ...pageState,
             success: "Abbointe succesvol bijgewerkt",
             error: "",
+            loading: false,
           });
+          reset(data);
+          window.location.reload();
+        }
+      } catch (e: any) {
+        setPageState({ ...pageState, error: "something wrong happened" });
+        console.error();
+      }
+    } else {
+      try {
+        const response = await axios.post(
+          `${BASE_URL}/subscription-types`,
+          data,
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (response.status == 200 || response.status == 201) {
+          setPageState({
+            ...pageState,
+            success: "Abbointe succesvol bijgewerkt",
+            error: "",
+            loading: false,
+          });
+          // window.location.reload();
+
           reset(data);
         }
       } catch (e: any) {
-        setPageState({ ...pageState, error: e.response.data.message });
-        console.error();
-      }
-    }
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/subscription-types`,
-        data,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (response.status == 200 || response.status == 201) {
         setPageState({
           ...pageState,
-          success: "Abbointe succesvol bijgewerkt",
-          error: "",
+          error: "Something wrong happened",
+          loading: false,
         });
-        reset(data);
       }
-    } catch (e: any) {
-      setPageState({ ...pageState, error: e.response.data.message });
-      console.error();
     }
   };
 
@@ -102,12 +112,12 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         <h1 className="text-xl md:text-2xl font-semibold mb-10">abonnement:</h1>
         <div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:items-center justify-between">
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="sub_name" className="flex-1">
+            <label htmlFor="sub_type" className="flex-1">
               abonnementstype:
             </label>
             <Input
               {...register("sub_type")}
-              id="sub_name"
+              id="sub_type"
               className="max-w-[350px] text-lg font-medium"
             />
           </div>
@@ -146,7 +156,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         >
           {isDirty
             ? "Änderungen speichern"
-            : pageState.loading
+            : !pageState.loading
             ? "Loading"
             : "keine Änderungen"}
         </Button>

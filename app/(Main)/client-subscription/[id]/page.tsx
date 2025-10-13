@@ -40,7 +40,6 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     error: "",
     success: "",
   });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for file
 
   const { id } = React.use(params);
 

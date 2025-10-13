@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 
 import { variableData } from "@/redux/type";
 import { getClientSubs } from "@/utils/api";
+import { EmailModal } from "@/components/ui/emailModal";
 
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
@@ -53,7 +54,10 @@ export default function Home() {
   });
   const [clientSubsData, setClientsSubsData] = useState<variableData[]>([]);
   const [clientSubs, setClientsSubs] = useState<variableData[]>([]);
-
+  const [active, setActive] = React.useState<boolean>(false);
+  const [selectedRows, setSelectedRows] = React.useState<Set<variableData>>(
+    new Set()
+  );
   const fetchClientSubsData = async (
     filterQuery: string = "",
     page: number = pagination.currentPage
@@ -85,6 +89,10 @@ export default function Home() {
     fetchClientSubsData(filterQuery, pagination.currentPage);
   }, [pagination.currentPage]);
 
+  const handleSelection = (newSelection: Set<variableData>) => {
+    setSelectedRows(newSelection);
+  };
+
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       setPagination((prev) => ({
@@ -104,6 +112,13 @@ export default function Home() {
     });
   };
 
+  useEffect(() => {
+    if (Array.from(selectedRows).length) {
+      setActive(true);
+    } else {
+      setActive(false);
+    }
+  }, [selectedRows]);
   return (
     <>
       <div className="px-4 text-2xl font-semibold">
@@ -166,6 +181,11 @@ export default function Home() {
                 {"Filter"}
               </Button>
             </form>
+            <EmailModal
+              active={active}
+              selectedRows={selectedRows}
+              page="clientSub"
+            ></EmailModal>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -194,6 +214,8 @@ export default function Home() {
           data={clientSubs}
           showcase={filterShow}
           url={"client-subscription"}
+          selectedRows={selectedRows}
+          setSelectedRows={handleSelection}
         />
         {/* Pagination Controls */}
         <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">

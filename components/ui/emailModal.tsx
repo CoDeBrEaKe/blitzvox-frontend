@@ -31,9 +31,14 @@ interface FormInputs {
 interface ChildProps {
   selectedRows: Set<variableData>;
   active: boolean;
+  page?: string;
 }
 
-export const EmailModal: React.FC<ChildProps> = ({ selectedRows, active }) => {
+export const EmailModal: React.FC<ChildProps> = ({
+  selectedRows,
+  active,
+  page,
+}) => {
   const {
     register,
     handleSubmit,
@@ -65,10 +70,20 @@ export const EmailModal: React.FC<ChildProps> = ({ selectedRows, active }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [emails, setEmails] = useState<variableData[]>([]);
   let email = useRef<EventTarget>(null);
+  if (page == "clientSub") {
+    const to = Array.from(selectedRows).map((value) => value["client.email"]);
+  }
 
   const onSubmit: SubmitHandler<FormInputs> = async (data) => {
-    const to = Array.from(selectedRows).map((value) => value.email);
-
+    let to;
+    if (page == "clientSub") {
+      console.log("tmam");
+      to = Array.from(selectedRows).map((value) => value["client.email"]);
+    } else {
+      to = Array.from(selectedRows).map((value) => value.email);
+      console.log("no");
+    }
+    console.log(to);
     data = {
       ...data,
       subject: data.subject,
@@ -89,7 +104,7 @@ export const EmailModal: React.FC<ChildProps> = ({ selectedRows, active }) => {
       setPageState((prev) => {
         return { ...prev, success: "Emails Sent Successfully" };
       });
-      window.location.reload();
+      // window.location.reload();
     } catch (e) {
       setPageState((prev) => {
         return { ...prev, error: e instanceof Error ? e.message : String(e) };
@@ -100,9 +115,12 @@ export const EmailModal: React.FC<ChildProps> = ({ selectedRows, active }) => {
   const onSubmitTemplate: SubmitHandler<FormInputs> = async (data) => {
     const selectedEmail =
       emails[emails.findIndex((e) => e.id == (email as any)?.current?.id)];
-
-    const to = Array.from(selectedRows).map((value) => value.email);
-
+    let to;
+    if (page == "clientSub") {
+      to = Array.from(selectedRows).map((value) => value["client.email"]);
+    } else {
+      to = Array.from(selectedRows).map((value) => value.email);
+    }
     data = {
       ...data,
       subject: selectedEmail.subject,

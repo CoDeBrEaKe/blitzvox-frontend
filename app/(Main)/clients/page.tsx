@@ -24,15 +24,15 @@ import Form from "@/components/ui/form";
 
 export default function Home() {
   const [active, setActive] = React.useState<boolean>(false);
+  const [selectedRows, setSelectedRows] = React.useState<Set<variableData>>(
+    new Set()
+  );
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
   const [clientsData, setClientsData] = React.useState({
     clients: [],
     pagination: {},
   });
-  const [selectedRows, setSelectedRows] = React.useState<Set<variableData>>(
-    new Set()
-  );
 
   const handleSelection = (newSelection: Set<variableData>) => {
     setSelectedRows(newSelection);
