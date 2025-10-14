@@ -38,7 +38,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`bg-blue-100 ${roboto.className}`}>
+      <body className={`bg-blue-50 ${roboto.className}`}>
         <StoreProvider>{children}</StoreProvider>
       </body>
     </html>

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, Check, ChevronDown, MoreHorizontal } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { variableData } from "@/redux/type";
 import { getClientSubs } from "@/utils/api";
 import { EmailModal } from "@/components/ui/emailModal";
+import { Table, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
@@ -49,12 +51,10 @@ export default function Home() {
     your_order_num: "Ihre Auftr.-Nr.",
     "subscription.sub_name": "Tarif/Produkt",
     counter_number: "Zählernummer",
-    sign_date: "Unterschriftsdatum",
-    start_importing: "Lieferbeginn",
-    end_importing: "Endlieferdatum",
-    "subscription.type.sub_image": "Verträge",
     actions: "actions",
   });
+  const [dateOn, setDateOn] = useState<string>("sign_date");
+  const [dates, setDates] = useState<string[]>([]);
   const [clientSubsData, setClientsSubsData] = useState<variableData[]>([]);
   const [clientSubs, setClientsSubs] = useState<variableData[]>([]);
   const [active, setActive] = React.useState<boolean>(false);
@@ -68,8 +68,6 @@ export default function Home() {
     const res = await getClientSubs(filterQuery, {
       page: page,
       limit: 10,
-      // from: "",
-      // to: "",
     });
     setClientsSubs(res.clientSubs);
 
@@ -126,7 +124,7 @@ export default function Home() {
   }, [selectedRows]);
   return (
     <>
-      <div className="px-4 text-2xl font-semibold">
+      <div className="text-2xl font-semibold  p-5  rounded-md bg-white m-3">
         <h2>cliëntabonnementen</h2>
         <div className="flex items-center py-4">
           <div className="flex gap-2">
@@ -134,7 +132,11 @@ export default function Home() {
               className="flex gap-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                let filteration = await getClientSubs(`${filterOn}${filter}`);
+                let filteration = await getClientSubs(`${filterOn}${filter}`, {
+                  page: pagination.currentPage,
+                  limit: 10,
+                  date: { [dateOn]: dates },
+                });
                 setClientsSubs(filteration.clientSubs);
               }}
             >
@@ -160,7 +162,7 @@ export default function Home() {
                   setFilterOn(v);
                 }}
               >
-                <option value="" disabled defaultChecked>
+                <option value="" disabled selected>
                   Filter
                 </option>
                 {Object.keys(showcase).map(
@@ -177,6 +179,33 @@ export default function Home() {
                       </option>
                     )
                 )}
+              </select>
+              <Input
+                type="date"
+                className="cursor-pointer rounded-md border-1 px-2 py-1 font-medium text-sm"
+                onChange={(e) => {
+                  setDates((prev) => [e.target.value, prev[1]]);
+                }}
+              />
+              <Input
+                type="date"
+                name="to"
+                className="cursor-pointer rounded-md border-1 px-2 py-1 font-medium text-sm"
+                onChange={(e) => setDates((prev) => [prev[0], e.target.value])}
+              />
+              <select
+                name="dateFilter"
+                id="dateFilter"
+                className="cursor-pointer rounded-md border-1 px-2 py-1 font-medium text-sm"
+                onChange={(e) => {
+                  setDateOn(e.target.value);
+                }}
+              >
+                <option value="sign_date" selected>
+                  Unterschriftsdatum
+                </option>
+                <option value="start_importing">Lieferbeginn</option>
+                <option value="end_importing">Endlieferdatum</option>
               </select>
 
               <Button
@@ -215,15 +244,40 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DataTableDemo
-          data={clientSubs}
-          showcase={filterShow}
-          url={"client-subscription"}
-          selectedRows={selectedRows}
-          setSelectedRows={handleSelection}
-          query={filterOn && filter ? `${filterOn}${filter}` : ""}
-        />
-        {/* Pagination Controls */}
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableCell>
+                <Checkbox
+                  checked={
+                    selectedRows.size === clientSubs.length &&
+                    clientSubs.length > 0
+                  }
+                  onCheckedChange={(checked: any) => {
+                    if (checked) {
+                      handleSelection(new Set(clientSubs));
+                    } else {
+                      handleSelection(new Set());
+                    }
+                  }}
+                  aria-label="Select all rows"
+                />
+              </TableCell>
+              {Object.keys(filterShow).map(
+                (key) =>
+                  filterShow[key] != "" && (
+                    <TableCell key={key} className="font-bold">
+                      <div className="flex items-center gap-2">
+                        {filterShow[key]}
+                      </div>
+                    </TableCell>
+                  )
+              )}
+            </TableRow>
+          </TableHeader>
+        </Table>
+
         <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}
         </span>

@@ -48,12 +48,19 @@ export async function getUserData(id: number) {
 
 export async function getClientSubs(
   query: string = "",
-  params: object = { page: 1, limit: undefined }
+  params: object = {
+    page: 1,
+    limit: 10,
+    date: { sign_date: ["1900-06-04", new Date().toISOString()] },
+  }
 ) {
-  const req: variableData = await axios.get(
+  const req: variableData = await axios.post(
     `${BASE_URL}/client-subscription?page=${(params as any).page}&limit=${
       (params as any).limit
     }&${query}`,
+    {
+      date: (params as any).date,
+    },
     {
       withCredentials: true,
     }

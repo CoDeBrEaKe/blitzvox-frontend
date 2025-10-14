@@ -101,7 +101,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="px-4 text-2xl font-semibold">
+      <div className="text-2xl font-semibold  p-5  rounded-md bg-white m-3">
         <h2>Users</h2>
         <div className="flex items-center py-4">
           <div className="flex gap-2">

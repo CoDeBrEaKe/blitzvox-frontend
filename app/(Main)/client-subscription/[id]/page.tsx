@@ -17,18 +17,17 @@ interface FormData {
   consumption: string;
   night_consumption: string;
   paid: string | boolean;
-  paid_date: string;
+  paid_date: string | null;
   rl: string | boolean;
-  rl_date: string;
+  rl_date: string | null;
   termination_date: string | null;
-  restablish_date: string;
-  sign_date: string;
-  start_importing: string;
-  end_importing: string;
-  contract_end: string;
+  restablish_date: string | null;
+  sign_date: string | null;
+  start_importing: string | null;
+  end_importing: string | null;
+  contract_end: string | null;
   contract_time: string;
   family_count: string;
-  person_num: string;
   persons_name: string;
   documents_link: string;
 }
@@ -206,7 +205,6 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             contract_end: data.contract_end?.split("T")[0] || null,
             contract_time: data.contract_time || "",
             family_count: data.family_count || 0,
-            person_num: data.person_num || "",
             persons_name: data.persons_name || "",
             documents_link: data.documents_link || "",
           });
@@ -388,6 +386,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <Input
               {...register("consumption")}
               id="consumption"
+              type="number"
               className="max-w-[350px]"
             />
           </div>
@@ -455,7 +454,12 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <label htmlFor="cost" className="flex-1">
               Provision:
             </label>
-            <Input {...register("cost")} id="cost" className="max-w-[350px]" />
+            <Input
+              {...register("cost")}
+              id="cost"
+              type="number"
+              className="max-w-[350px]"
+            />
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />
@@ -467,6 +471,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             <Input
               {...register("family_count")}
               id="family_count"
+              type="number"
               className="max-w-[350px]"
             />
           </div>

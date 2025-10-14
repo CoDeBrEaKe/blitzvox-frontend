@@ -130,7 +130,7 @@ const Page = () => {
 
       // Update client subscription
       const response = await axios.post(
-        `${BASE_URL}/client-subscription`,
+        `${BASE_URL}/client-subscription/create`,
         updatedData,
         {
           withCredentials: true,
@@ -277,6 +277,7 @@ const Page = () => {
             <Input
               {...register("consumption")}
               type="number"
+              defaultValue={0}
               id="consumption"
               className="max-w-[350px]"
             />
@@ -290,6 +291,7 @@ const Page = () => {
               id="night_consumption"
               type="number"
               className="max-w-[350px]"
+              defaultValue={0}
             />
           </div>
         </div>
@@ -339,6 +341,7 @@ const Page = () => {
             <Input
               {...register("cost")}
               id="cost"
+              defaultValue={0}
               type="number"
               className="max-w-[350px]"
             />
@@ -353,6 +356,8 @@ const Page = () => {
             <Input
               {...register("family_count")}
               id="family_count"
+              type="number"
+              defaultValue={0}
               className="max-w-[350px]"
             />
           </div>
