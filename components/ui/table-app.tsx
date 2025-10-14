@@ -45,15 +45,17 @@ export function DataTableDemo({
     if (setSelectedRows) setSelectedRows(newSelected);
   };
 
-  const toggleAllRows = async (): Promise<void> => {
+  const toggleAllRows = async (e: HTMLInputElement): Promise<void> => {
     const res = await getClientSubs(query, { page: 1 });
     const clientSubs = res.clientSubs;
     if (setSelectedRows) {
       if (selectedRows?.size == clientSubs.length) {
+        (e as any).target.checked = false;
         setSelectedRows(new Set());
       } else {
         let newset = clientSubs.map((row: variableData) => row);
         setSelectedRows(new Set(newset));
+        (e as any).target.checked = true;
       }
     }
   };
@@ -68,10 +70,7 @@ export function DataTableDemo({
               {/* Dynamic columns from showcase */}
               <TableCell>
                 <Checkbox
-                  checked={
-                    selectedRows ? selectedRows?.size > data.length : false
-                  }
-                  onCheckedChange={toggleAllRows}
+                  onCheckedChange={(e) => toggleAllRows(e as any)}
                   aria-label="Select row"
                 />
               </TableCell>
@@ -97,15 +96,13 @@ export function DataTableDemo({
                   data-state={selectedRows?.has(row) ? "selected" : undefined}
                   className="cursor-pointer"
                 >
-                  {showcase.select && (
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedRows?.has(row)}
-                        onCheckedChange={() => toggleRowSelection(row)}
-                        aria-label="Select row"
-                      />
-                    </TableCell>
-                  )}
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedRows?.has(row)}
+                      onCheckedChange={() => toggleRowSelection(row)}
+                      aria-label="Select row"
+                    />
+                  </TableCell>
 
                   {Object.keys(showcase).map(
                     (key) =>

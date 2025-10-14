@@ -17,6 +17,13 @@ import {
 import { Textarea } from "@/components/ui/textarea"; // Add this import
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import Link from "next/link";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface FormData {
   title: string;
@@ -424,21 +431,36 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           {isDirty ? "Änderungen speichern" : "keine Änderungen"}
         </Button>
       </form>
-
       <hr className="bg-[#eee] h-[1px] w-full my-6" />
-
       <h2 className="text-xl md:text-2xl font-semibold py-10">Abonnements</h2>
-      <DataTableDemo
-        data={
-          client.subs?.map((sub: any) => ({
-            ...sub,
-            ...sub.creator,
-          })) || []
-        }
-        showcase={showcase}
-        url={"client-subscription"}
-      />
 
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-amber-200 hover:bg-amber-200 ">
+            {/* Dynamic columns from showcase */}
+            <TableCell>Zählernummer</TableCell>
+            <TableCell>ERFASSER</TableCell>
+            <TableCell>Lieferbeginn</TableCell>
+            <TableCell>Endlieferdatum</TableCell>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {client.subs && client.subs.length > 0 ? (
+            client.subs.map((row: any) => (
+              <TableRow key={row.id} className="hover:cursor-pointer">
+                <TableCell>{row.counter_number}</TableCell>
+                <TableCell>{row.creator.name}</TableCell>
+                <TableCell>{row.start_importing}</TableCell>
+                <TableCell>{row.end_importing}</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow className="hover:cursor-pointer">
+              <TableCell>No Results</TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
       <hr className="bg-[#eee] h-[1px] w-full mt-6" />
       <h2 className="text-xl md:text-2xl font-semibold py-10">Feedbacks</h2>
       <form
@@ -472,7 +494,6 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           </Button>
         </div>
       </form>
-
       {/* Display validation errors for feedback form */}
       {feedbackErrors.feedback && (
         <p className="text-red-500 text-center mb-4">

@@ -33,22 +33,25 @@ export default function Home() {
     hasPrev: false,
   });
   const [filterShow, setfilterShow] = useState<Record<string, string>>({
-    select: "select",
     "client.first_name": "Name",
     your_order_num: "Ihre Auftr.-Nr.",
     sign_date: "Unterschriftsdatum",
     "subscription.sub_name": "Tarif/Produkt",
     counter_number: "Zählernummer",
+    start_importing: "Lieferbeginn",
+    end_importing: "Endlieferdatum",
     "subscription.type.sub_image": "Verträge",
     actions: "actions",
   });
   const [showcase, setShowcase] = useState<Record<string, string>>({
-    select: "select",
+    select: "",
     "client.first_name": "Name",
     your_order_num: "Ihre Auftr.-Nr.",
-    sign_date: "Unterschriftsdatum",
     "subscription.sub_name": "Tarif/Produkt",
     counter_number: "Zählernummer",
+    sign_date: "Unterschriftsdatum",
+    start_importing: "Lieferbeginn",
+    end_importing: "Endlieferdatum",
     "subscription.type.sub_image": "Verträge",
     actions: "actions",
   });
@@ -65,6 +68,8 @@ export default function Home() {
     const res = await getClientSubs(filterQuery, {
       page: page,
       limit: 10,
+      // from: "",
+      // to: "",
     });
     setClientsSubs(res.clientSubs);
 
@@ -155,7 +160,7 @@ export default function Home() {
                   setFilterOn(v);
                 }}
               >
-                <option value="" defaultChecked>
+                <option value="" disabled defaultChecked>
                   Filter
                 </option>
                 {Object.keys(showcase).map(

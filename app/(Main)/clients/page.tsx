@@ -48,7 +48,7 @@ export default function Home() {
   });
 
   const [filterShow, setFilterShow] = useState<Record<string, string>>({
-    select: "select",
+    select: "",
     first_name: "Name",
     email: "E-mail",
     phone: "Telefone",
@@ -59,7 +59,6 @@ export default function Home() {
     actions: "actions",
   });
   const [showcase, setShowcase] = useState<Record<string, string>>({
-    select: "select",
     first_name: "Name",
     email: "E-mail",
     phone: "Telefone",

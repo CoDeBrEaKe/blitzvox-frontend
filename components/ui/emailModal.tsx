@@ -77,13 +77,14 @@ export const EmailModal: React.FC<ChildProps> = ({
   const onSubmit: SubmitHandler<FormInputs> = async (data) => {
     let to;
     if (page == "clientSub") {
-      console.log("tmam");
-      to = Array.from(selectedRows).map((value) => value["client.email"]);
+      to = [
+        ...new Set(
+          Array.from(selectedRows).map((value) => value["client.email"])
+        ),
+      ];
     } else {
-      to = Array.from(selectedRows).map((value) => value.email);
-      console.log("no");
+      to = [...new Set(Array.from(selectedRows).map((value) => value.email))];
     }
-    console.log(to);
     data = {
       ...data,
       subject: data.subject,
@@ -104,10 +105,14 @@ export const EmailModal: React.FC<ChildProps> = ({
       setPageState((prev) => {
         return { ...prev, success: "Emails Sent Successfully" };
       });
-      // window.location.reload();
+      window.location.reload();
     } catch (e) {
       setPageState((prev) => {
-        return { ...prev, error: e instanceof Error ? e.message : String(e) };
+        return {
+          ...prev,
+          success: "",
+          error: e instanceof Error ? e.message : String(e),
+        };
       });
     }
   };
