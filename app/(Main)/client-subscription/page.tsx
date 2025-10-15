@@ -17,11 +17,18 @@ import { ArrowUpDown, Check, ChevronDown, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { variableData } from "@/redux/type";
+import { BASE_URL, variableData } from "@/redux/type";
 import { getClientSubs } from "@/utils/api";
 import { EmailModal } from "@/components/ui/emailModal";
-import { Table, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import axios from "axios";
 
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
@@ -68,6 +75,7 @@ export default function Home() {
     const res = await getClientSubs(filterQuery, {
       page: page,
       limit: 10,
+      date: { sign_date: ["1900-06-04", new Date().toISOString()] },
     });
     setClientsSubs(res.clientSubs);
 
@@ -94,6 +102,23 @@ export default function Home() {
 
   const handleSelection = (newSelection: Set<variableData>) => {
     setSelectedRows(newSelection);
+  };
+
+  const toggleAllSelection = async () => {
+    const res = await getClientSubs("", {
+      page: 1,
+      limit: undefined,
+      date: dateOn
+        ? { dateOn: dates }
+        : ["1900-06-04", new Date().toISOString()],
+    });
+    setClientsSubs(res.clientSubs);
+
+    if (selectedRows.size === clientSubs.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(res.clientSubs));
+    }
   };
 
   const handlePageChange = (newPage: number) => {
@@ -250,17 +275,7 @@ export default function Home() {
             <TableRow>
               <TableCell>
                 <Checkbox
-                  checked={
-                    selectedRows.size === clientSubs.length &&
-                    clientSubs.length > 0
-                  }
-                  onCheckedChange={(checked: any) => {
-                    if (checked) {
-                      handleSelection(new Set(clientSubs));
-                    } else {
-                      handleSelection(new Set());
-                    }
-                  }}
+                  onCheckedChange={toggleAllSelection}
                   aria-label="Select all rows"
                 />
               </TableCell>
@@ -276,11 +291,71 @@ export default function Home() {
               )}
             </TableRow>
           </TableHeader>
+          <TableBody>
+            {clientSubs.length > 0 ? (
+              clientSubs.map((sub) => (
+                <TableRow key={sub.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedRows.has(sub)}
+                      onCheckedChange={(checked) => {
+                        const newSelected = new Set(selectedRows);
+                        if (checked) newSelected.add(sub);
+                        else newSelected.delete(sub);
+                        setSelectedRows(newSelected);
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>{sub["client.first_name"]}</TableCell>
+                  <TableCell>{sub["your_order_num"]}</TableCell>
+                  <TableCell>{sub["sign_date"]}</TableCell>
+                  <TableCell>{sub["subscription.sub_name"]}</TableCell>
+                  <TableCell>{sub["subscription.counter_num"]}</TableCell>
+                  <TableCell>{sub["start_importing"]}</TableCell>
+                  <TableCell>{sub["end_importing"]}</TableCell>
+                  <TableCell>{sub["subscription.type.sub_image"]}</TableCell>
+                  <TableCell>
+                    <Button
+                      className="bg-red-500 cursor-pointer"
+                      onClick={async () => {
+                        if (
+                          confirm("Are you sure you want to delete this row?")
+                        ) {
+                          try {
+                            await axios.delete(
+                              `${BASE_URL}/client-subscription/${sub.id}`,
+                              { withCredentials: true }
+                            );
+                            window.location.reload();
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={10} className="text-center text-gray-500">
+                  No client subscriptions found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
         </Table>
 
-        <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
-          Page {pagination.currentPage} of {pagination.totalPages}
-        </span>
+        <div>
+          <div className="text-muted-foreground flex-1 text-sm">
+            {clientSubs.length} row(s)
+          </div>
+          <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
+            Page {pagination.currentPage} of {pagination.totalPages}
+          </span>
+        </div>
         <div className="pagination flex gap-5 justify-center">
           <Button
             onClick={() => handlePageChange(pagination.currentPage - 1)}

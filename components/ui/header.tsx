@@ -15,8 +15,8 @@ function Header() {
           />
           <h2 className="text-lg lg:text-2xl font-semibold">Blitzvox CRM</h2>
         </div>
-        <div className="text-lg lg:text-2xl">
-          Hello , {user?.name?.toUpperCase()}
+        <div className="text-lg lg:text-xl capitalize">
+          Hello , {user?.name}
         </div>
       </header>
     );
