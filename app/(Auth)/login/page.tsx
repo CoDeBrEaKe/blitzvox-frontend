@@ -55,7 +55,7 @@ const Page = () => {
 
   if (!user) {
     return (
-      <div className="bg-white shadow rounded-lg p-4 flex flex-col gap-4 min-w-[320px] md:min-w-[500px]">
+      <div className="bg-white shadow-2xl rounded-lg p-4 flex flex-col gap-4 min-w-[320px] md:min-w-[500px]">
         <img src={logo.src} className="max-w-40 max-h-40 self-center" />
         <form
           onSubmit={handleSubmit}

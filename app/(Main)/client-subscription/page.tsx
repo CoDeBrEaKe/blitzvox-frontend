@@ -325,7 +325,7 @@ export default function Home() {
                     <TableCell>{sub["subscription.counter_num"]}</TableCell>
                     <TableCell>{sub["start_importing"]}</TableCell>
                     <TableCell>{sub["end_importing"]}</TableCell>
-                    <TableCell className="">
+                    <TableCell>
                       <img
                         src={sub["subscription.type.sub_image"]}
                         className="flex self-center"
