@@ -24,13 +24,11 @@ export default function Home() {
   const [filter, setFilter] = React.useState<string>("");
 
   const [filterShow, setFilterShow] = useState<Record<string, string>>({
-    select: "select",
     subject: "E-mailonderwerp",
     content: "E-mailinhoud",
     actions: "actions",
   });
   const [showcase, setShowcase] = useState<Record<string, string>>({
-    select: "select",
     subject: "E-mailonderwerp",
     content: "E-mailinhoud",
     actions: "actions",

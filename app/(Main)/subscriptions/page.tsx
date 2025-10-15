@@ -14,28 +14,32 @@ import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { variableData } from "@/redux/type";
+import { BASE_URL, variableData } from "@/redux/type";
 import { getSubscriptions } from "@/utils/api";
 import Link from "next/link";
-
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
 
   const [filterShow, setFilterShow] = useState<Record<string, string>>({
-    select: "select",
     sub_name: "abonnementsnaam",
     company: "Firma",
     "type.sub_type": "abonnementstype",
-    actions: "actions",
   });
 
   const [showcase, setShowcase] = useState<Record<string, string>>({
-    select: "select",
     sub_name: "abonnementsnaam",
     company: "Firma",
     "type.sub_type": "abonnementstype",
-    actions: "actions",
   });
 
   const [pagination, setPagination] = useState({
@@ -50,7 +54,7 @@ export default function Home() {
   const [subscriptionsData, setSubscriptionsData] = useState<variableData[]>(
     []
   );
-
+  const router = useRouter();
   const fetchSubscriptionData = async (
     filterQuery: string = "",
     page: number = pagination.currentPage
@@ -196,11 +200,69 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DataTableDemo
-          data={subscriptions}
-          showcase={filterShow}
-          url={"subscriptions"}
-        />
+        <div className="border rounded-md p-2">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {Object.keys(filterShow).map(
+                  (key) =>
+                    filterShow[key] != "" && (
+                      <TableCell key={key} className="font-bold">
+                        <div className="flex items-center gap-2">
+                          {filterShow[key]}
+                        </div>
+                      </TableCell>
+                    )
+                )}
+                <TableCell className="font-bold">actions</TableCell>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {subscriptions.length > 0 ? (
+                subscriptions.map((sub) => (
+                  <TableRow
+                    className="cursor-pointer hover:bg-gray-200"
+                    key={sub.id}
+                    onClick={() => router.push(`/subscriptions/${sub.id}`)}
+                  >
+                    <TableCell>{sub["sub_name"]}</TableCell>
+                    <TableCell>{sub["company"]}</TableCell>
+                    <TableCell>{sub["type.sub_type"]}</TableCell>
+
+                    <TableCell>
+                      <Button
+                        className="bg-red-500 cursor-pointer"
+                        onClick={async () => {
+                          if (
+                            confirm("Are you sure you want to delete this row?")
+                          ) {
+                            try {
+                              await axios.delete(
+                                `${BASE_URL}/subscription/${sub.id}`,
+                                { withCredentials: true }
+                              );
+                              window.location.reload();
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={10} className="text-center text-gray-500">
+                    No client subscriptions found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
         {/* Pagination Controls */}
         <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}

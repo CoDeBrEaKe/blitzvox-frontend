@@ -51,7 +51,7 @@ export async function getClientSubs(
   params: object = {
     page: 1,
     limit: 10,
-    date: { sign_date: ["1900-06-04", new Date().toISOString()] },
+    date: { sign_date: [] },
   }
 ) {
   const req: variableData = await axios.post(

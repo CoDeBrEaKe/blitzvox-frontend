@@ -94,7 +94,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           });
           // window.location.reload();
 
-          reset(data);
+          reset();
         }
       } catch (e: any) {
         setPageState({
@@ -126,6 +126,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               upload:
             </label>
             <Input
+              required
               id="sub_image"
               onChange={handleFileChange}
               type="file"

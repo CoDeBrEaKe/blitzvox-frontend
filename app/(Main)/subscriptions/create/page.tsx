@@ -54,35 +54,14 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           success: "Abbointe succesvol bijgewerkt",
           error: "",
         });
-        reset(data);
+        reset();
       }
     } catch (e: any) {
       setPageState({ ...pageState, error: e.response.data.message });
       console.error();
     }
   };
-  useEffect(() => {
-    async function getData() {
-      try {
-        setIsLoading(true);
-        const users = await getSubscriptionTypes();
-        setSubscriptionTypes(users);
-      } catch (error) {
-        console.error("Error fetching client data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    getData();
-  }, []);
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
   return (
     <div className="px-8 py-4">
       <form onSubmit={handleSubmit(onSubmit)}>

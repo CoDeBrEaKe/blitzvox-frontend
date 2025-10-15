@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { getClientSubData, getFeedbacks } from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "@/redux/type";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useFieldArray, useForm, SubmitHandler } from "react-hook-form";
 import axios from "axios";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -28,7 +28,7 @@ interface FormData {
   contract_end: string | null;
   contract_time: string;
   family_count: string;
-  persons_name: string;
+  persons_name: any[];
   documents_link: string;
 }
 interface FeedbackFormData {
@@ -53,9 +53,17 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     handleSubmit,
     formState: { errors, isDirty, isValid },
     reset,
+    control,
     setValue,
   } = useForm<FormData>({
+    defaultValues: {
+      persons_name: [""],
+    },
     mode: "onChange",
+  });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "persons_name",
   });
   const {
     register: registerFeedback,
@@ -81,6 +89,11 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
       rl: data.rl === "true",
       paid: data.paid === "true",
       documents_link: `${BASE_URL}/api/documents/${clientSub["client.id"]}/${clientSub["subscription.id"]}/${clientSub["client.first_name"]}`,
+      persons_name: Array.isArray(data.persons_name)
+        ? data.persons_name.map((f) =>
+            typeof f === "object" && f !== null ? f.name : f
+          )
+        : [],
     };
     try {
       let updatedData = data;
@@ -476,14 +489,36 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             />
           </div>
           <div className="flex justify-between items-center gap-5 min-w-[40%]">
-            <label htmlFor="persons_name" className="flex-1">
+            <label htmlFor="cost" className="flex-1">
               persons_name:
             </label>
-            <Input
-              {...register("persons_name")}
-              id="persons_name"
-              className="max-w-[350px]"
-            />
+            <div>
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex  gap-2 mb-2">
+                  <input
+                    {...register(`persons_name.${index}` as const)}
+                    placeholder={`Member ${index + 1}`}
+                    className="border p-2 rounded flex-1"
+                  />
+                  <button
+                    type="button"
+                    hidden={index == 0}
+                    onClick={() => remove(index)}
+                    className="bg-red-500 text-white px-2 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => append([""])}
+              className="bg-blue-500 text-white px-3 py-1 rounded"
+            >
+              + Add Member
+            </button>
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />

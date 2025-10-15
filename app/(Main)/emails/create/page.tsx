@@ -48,7 +48,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           success: "e-mail aangemaakt",
           error: "",
         });
-        reset(data);
+        reset();
       }
     } catch (e: any) {
       setPageState({ ...pageState, error: e.response.data.message });

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
@@ -68,6 +69,7 @@ export default function Home() {
   const [selectedRows, setSelectedRows] = React.useState<Set<variableData>>(
     new Set()
   );
+  const router = useRouter();
   const fetchClientSubsData = async (
     filterQuery: string = "",
     page: number = pagination.currentPage
@@ -75,7 +77,9 @@ export default function Home() {
     const res = await getClientSubs(filterQuery, {
       page: page,
       limit: 10,
-      date: { sign_date: ["1900-06-04", new Date().toISOString()] },
+      date: {
+        sign_date: [],
+      },
     });
     setClientsSubs(res.clientSubs);
 
@@ -270,84 +274,97 @@ export default function Home() {
           </DropdownMenu>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableCell>
-                <Checkbox
-                  onCheckedChange={toggleAllSelection}
-                  aria-label="Select all rows"
-                />
-              </TableCell>
-              {Object.keys(filterShow).map(
-                (key) =>
-                  filterShow[key] != "" && (
-                    <TableCell key={key} className="font-bold">
-                      <div className="flex items-center gap-2">
-                        {filterShow[key]}
-                      </div>
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableCell>
+                  <Checkbox
+                    checked={clientSubs.length == selectedRows?.size}
+                    onCheckedChange={toggleAllSelection}
+                    aria-label="Select all rows"
+                  />
+                </TableCell>
+                {Object.keys(filterShow).map(
+                  (key) =>
+                    filterShow[key] != "" && (
+                      <TableCell key={key} className="font-bold">
+                        <div className="flex items-center gap-2">
+                          {filterShow[key]}
+                        </div>
+                      </TableCell>
+                    )
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {clientSubs.length > 0 ? (
+                clientSubs.map((sub) => (
+                  <TableRow
+                    className="cursor-pointer hover:bg-gray-200"
+                    key={sub.id}
+                    onClick={() =>
+                      router.push(`/client-subscription/${sub.id}`)
+                    }
+                  >
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedRows.has(sub)}
+                        onCheckedChange={(checked) => {
+                          const newSelected = new Set(selectedRows);
+                          if (checked) newSelected.add(sub);
+                          else newSelected.delete(sub);
+                          setSelectedRows(newSelected);
+                        }}
+                      />
                     </TableCell>
-                  )
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {clientSubs.length > 0 ? (
-              clientSubs.map((sub) => (
-                <TableRow key={sub.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedRows.has(sub)}
-                      onCheckedChange={(checked) => {
-                        const newSelected = new Set(selectedRows);
-                        if (checked) newSelected.add(sub);
-                        else newSelected.delete(sub);
-                        setSelectedRows(newSelected);
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{sub["client.first_name"]}</TableCell>
-                  <TableCell>{sub["your_order_num"]}</TableCell>
-                  <TableCell>{sub["sign_date"]}</TableCell>
-                  <TableCell>{sub["subscription.sub_name"]}</TableCell>
-                  <TableCell>{sub["subscription.counter_num"]}</TableCell>
-                  <TableCell>{sub["start_importing"]}</TableCell>
-                  <TableCell>{sub["end_importing"]}</TableCell>
-                  <TableCell>{sub["subscription.type.sub_image"]}</TableCell>
-                  <TableCell>
-                    <Button
-                      className="bg-red-500 cursor-pointer"
-                      onClick={async () => {
-                        if (
-                          confirm("Are you sure you want to delete this row?")
-                        ) {
-                          try {
-                            await axios.delete(
-                              `${BASE_URL}/client-subscription/${sub.id}`,
-                              { withCredentials: true }
-                            );
-                            window.location.reload();
-                          } catch (e) {
-                            console.error(e);
+                    <TableCell>{sub["client.first_name"]}</TableCell>
+                    <TableCell>{sub["your_order_num"]}</TableCell>
+                    <TableCell>{sub["sign_date"]}</TableCell>
+                    <TableCell>{sub["subscription.sub_name"]}</TableCell>
+                    <TableCell>{sub["subscription.counter_num"]}</TableCell>
+                    <TableCell>{sub["start_importing"]}</TableCell>
+                    <TableCell>{sub["end_importing"]}</TableCell>
+                    <TableCell className="">
+                      <img
+                        src={sub["subscription.type.sub_image"]}
+                        className="flex self-center"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        className="bg-red-500 cursor-pointer"
+                        onClick={async () => {
+                          if (
+                            confirm("Are you sure you want to delete this row?")
+                          ) {
+                            try {
+                              await axios.delete(
+                                `${BASE_URL}/client-subscription/${sub.id}`,
+                                { withCredentials: true }
+                              );
+                              window.location.reload();
+                            } catch (e) {
+                              console.error(e);
+                            }
                           }
-                        }
-                      }}
-                    >
-                      Delete
-                    </Button>
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={10} className="text-center text-gray-500">
+                    No client subscriptions found.
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={10} className="text-center text-gray-500">
-                  No client subscriptions found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-
+              )}
+            </TableBody>
+          </Table>
+        </div>
         <div>
           <div className="text-muted-foreground flex-1 text-sm">
             {clientSubs.length} row(s)

@@ -24,14 +24,12 @@ export default function Home() {
   const [filter, setFilter] = React.useState<string>("");
   const { user } = useAppSelector((state) => state.auth);
   const [filterShow, setFilterShow] = useState<Record<string, string>>({
-    select: "select",
     name: "Name",
     username: "gebruikersnaam",
     role: "rol",
     actions: "actions",
   });
   const [showcase, setShowcase] = useState<Record<string, string>>({
-    select: "select",
     name: "Name",
     username: "gebruikersnaam",
     role: "rol",

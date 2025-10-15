@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import React, { use, useEffect, useState } from "react";
 import { BASE_URL, variableData } from "@/redux/type";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import axios from "axios";
 
 import { useAppSelector } from "@/redux/hooks";
@@ -33,8 +33,7 @@ interface FormData {
   contract_end: string | null;
   contract_time: string;
   family_count: string;
-  person_num: string;
-  persons_name: string;
+  persons_name: any[];
   documents_link: string;
 }
 
@@ -60,7 +59,14 @@ const Page = () => {
     reset,
     watch,
   } = useForm<FormData>({
+    defaultValues: {
+      persons_name: [""],
+    },
     mode: "onChange",
+  });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "persons_name",
   });
 
   useEffect(() => {
@@ -100,6 +106,11 @@ const Page = () => {
       start_importing: data.start_importing || null,
       end_importing: data.end_importing || null,
       termination_date: data.termination_date || null,
+      persons_name: Array.isArray(data.persons_name)
+        ? data.persons_name.map((f) =>
+            typeof f === "object" && f !== null ? f.name : f
+          )
+        : [],
     };
     try {
       let updatedData = data;
@@ -146,7 +157,7 @@ const Page = () => {
           success: "Abbointe succesvol bijgewerkt",
           error: "",
         });
-        reset(updatedData);
+        reset();
         setSelectedFile(null); // Clear file after successful upload
       }
     } catch (e: any) {
@@ -365,7 +376,33 @@ const Page = () => {
             <label htmlFor="cost" className="flex-1">
               persons_name:
             </label>
-            <Input id="cost" className="max-w-[350px]" />
+            <div>
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex  gap-2 mb-2">
+                  <input
+                    {...register(`persons_name.${index}` as const)}
+                    placeholder={`Member ${index + 1}`}
+                    className="border p-2 rounded flex-1"
+                  />
+                  <button
+                    type="button"
+                    hidden={index == 0}
+                    onClick={() => remove(index)}
+                    className="bg-red-500 text-white px-2 rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => append([""])}
+              className="bg-blue-500 text-white px-3 py-1 rounded"
+            >
+              + Add Member
+            </button>
           </div>
         </div>
         <hr className="bg-[#eee] h-[1px] w-full my-6" />

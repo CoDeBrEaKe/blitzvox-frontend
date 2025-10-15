@@ -13,25 +13,29 @@ import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-import { variableData } from "@/redux/type";
+import { useRouter } from "next/navigation";
+import { BASE_URL, variableData } from "@/redux/type";
 import { getSubscriptionTypes } from "@/utils/api";
 import Link from "next/link";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import axios from "axios";
 
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
   const [filter, setFilter] = React.useState<string>("");
   const [filterShow, setFilterShow] = useState<Record<string, string>>({
-    select: "select",
     sub_type: "abonnementstype",
     sub_image: "abonnementsafbeelding",
-    actions: "actions",
   });
   const [showcase, setShowcase] = useState<Record<string, string>>({
-    select: "select",
     sub_type: "abonnementstype",
     sub_image: "abonnementsafbeelding",
-    actions: "actions",
   });
   const [subscriptiontypes, setSubscriptiontypes] = useState<variableData[]>(
     []
@@ -47,6 +51,7 @@ export default function Home() {
   const [subscriptionsData, setSubscriptionsData] = useState<variableData[]>(
     []
   );
+  const router = useRouter();
 
   const fetchSubscriptionData = async (
     filterQuery: string = "",
@@ -193,11 +198,75 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DataTableDemo
-          data={subscriptiontypes}
-          showcase={filterShow}
-          url={"subscription-types"}
-        />
+        <div className="border rounded-md p-2">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {Object.keys(filterShow).map(
+                  (key) =>
+                    filterShow[key] != "" && (
+                      <TableCell key={key} className="font-bold">
+                        <div className="flex items-center gap-2">
+                          {filterShow[key]}
+                        </div>
+                      </TableCell>
+                    )
+                )}
+                <TableCell className="font-bold">actions</TableCell>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {subscriptiontypes.length > 0 ? (
+                subscriptiontypes.map((type) => (
+                  <TableRow
+                    className="cursor-pointer hover:bg-gray-200"
+                    key={type.id}
+                    onClick={() =>
+                      router.push(`/client-subscription/${type.id}`)
+                    }
+                  >
+                    <TableCell>{type["sub_type"]}</TableCell>
+                    <TableCell className="">
+                      <img
+                        src={type["sub_image"]}
+                        className="flex self-center"
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <Button
+                        className="bg-red-500 cursor-pointer"
+                        onClick={async () => {
+                          if (
+                            confirm("Are you sure you want to delete this row?")
+                          ) {
+                            try {
+                              await axios.delete(
+                                `${BASE_URL}/client-subscription/${type.id}`,
+                                { withCredentials: true }
+                              );
+                              window.location.reload();
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={10} className="text-center text-gray-500">
+                    No client subscriptions found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
         {/* Pagination Controls */}
         <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
           Page {pagination.currentPage} of {pagination.totalPages}

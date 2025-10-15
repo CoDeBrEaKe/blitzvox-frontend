@@ -27,7 +27,7 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
   // Filter data by email
   return (
     <div className=" ">
-      <div className="overflow-hidden rounded-md border px-4">
+      <div className="overflow-hidden rounded-md border px-4 ">
         <Table>
           <TableHeader>
             <TableRow>
@@ -48,7 +48,10 @@ export function DataTableDemo({ data, showcase, url }: DataTableDemoProps) {
           <TableBody>
             {data.length ? (
               data.map((row) => (
-                <TableRow key={row.id} className="cursor-pointer">
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer hover:bg-gray-200"
+                >
                   {Object.keys(showcase).map(
                     (key) =>
                       showcase[key] != "" &&

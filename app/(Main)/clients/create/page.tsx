@@ -69,9 +69,9 @@ const Page = ({ params }: { params: { id: number } }) => {
         },
       });
 
-      if (response.status == 201) {
+      if (response.status == 201 || response.status == 200) {
         alert("Client created successfully!");
-        reset(data);
+        reset();
       } else {
         alert("Failed to create client data");
       }
@@ -232,7 +232,8 @@ const Page = ({ params }: { params: { id: number } }) => {
               Email:
             </label>
             <Input
-              {...register("email")}
+              {...register("email", { required: true })}
+              type="email"
               id="email"
               className="max-w-[350px]"
             />

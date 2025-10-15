@@ -16,12 +16,20 @@ import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { variableData } from "@/redux/type";
-import { getClients } from "@/utils/api";
+import { BASE_URL, variableData } from "@/redux/type";
+import { getClients, getSubscriptions } from "@/utils/api";
 import Link from "next/link";
 import { EmailModal } from "@/components/ui/emailModal";
 import Form from "@/components/ui/form";
-
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 export default function Home() {
   const [active, setActive] = React.useState<boolean>(false);
   const [selectedRows, setSelectedRows] = React.useState<Set<variableData>>(
@@ -48,29 +56,24 @@ export default function Home() {
   });
 
   const [filterShow, setFilterShow] = useState<Record<string, string>>({
-    select: "",
     first_name: "Name",
     email: "E-mail",
     phone: "Telefone",
-    company_name: "Firma",
     city: "Stadt",
     subscriptions: "Verträge",
     feedbacks: "Letztes Feedback",
-    actions: "actions",
   });
   const [showcase, setShowcase] = useState<Record<string, string>>({
     first_name: "Name",
     email: "E-mail",
     phone: "Telefone",
-    company_name: "Firma",
     city: "Stadt",
     subscriptions: "Verträge",
     feedbacks: "Letztes Feedback",
-    actions: "actions",
   });
 
   const [clients, setClients] = useState<variableData[]>([]);
-
+  const router = useRouter();
   // Fetch clients data
   const fetchClientsData = async (
     filterQuery: string = "",
@@ -241,13 +244,86 @@ export default function Home() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <DataTableDemo
-        data={clients}
-        showcase={filterShow}
-        url={"clients"}
-        selectedRows={selectedRows}
-        setSelectedRows={handleSelection}
-      />
+      <div className="border rounded-md p-2">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {Object.keys(filterShow).map(
+                (key) =>
+                  filterShow[key] != "" && (
+                    <TableCell key={key} className="font-bold">
+                      <div className="flex items-center gap-2">
+                        {filterShow[key]}
+                      </div>
+                    </TableCell>
+                  )
+              )}
+              <TableCell className="font-bold">actions</TableCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {clients.length > 0 ? (
+              clients.map((client) => (
+                <TableRow
+                  className="cursor-pointer hover:bg-gray-200"
+                  key={client.id}
+                  onClick={() => router.push(`/clients/${client.id}`)}
+                >
+                  <TableCell>
+                    {client["first_name"]} {client["familly_name"]}
+                  </TableCell>
+                  <TableCell>{client["email"]}</TableCell>
+                  <TableCell>{client["phone"]}</TableCell>
+                  <TableCell>{client["company"]}</TableCell>
+                  <TableCell>{client["city"]}</TableCell>
+                  <TableCell>
+                    <TableCell>
+                      {client["subscriptions"].map((sub: any) => (
+                        <img
+                          onClick={() =>
+                            router.push(`/client-subscription/${sub.id}`)
+                          }
+                          src={sub.type.sub_image}
+                          className="w-6 h-6 inline-block mr-1"
+                        />
+                      ))}
+                    </TableCell>
+                  </TableCell>
+
+                  <TableCell>
+                    <Button
+                      className="bg-red-500 cursor-pointer"
+                      onClick={async () => {
+                        if (
+                          confirm("Are you sure you want to delete this row?")
+                        ) {
+                          try {
+                            await axios.delete(
+                              `${BASE_URL}/clients/${client.id}`,
+                              { withCredentials: true }
+                            );
+                            window.location.reload();
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={10} className="text-center text-gray-500">
+                  No client subscriptions found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
       {/* Pagination Controls */}
       <span className="page-info text-sm text-[#888] block w-[100%] my-5 self-center text-center">
         Page {pagination.currentPage} of {pagination.totalPages}
