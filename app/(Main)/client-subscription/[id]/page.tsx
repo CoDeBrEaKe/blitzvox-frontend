@@ -201,11 +201,11 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           reset({
             order_num: data.order_num || "",
             your_order_num: data.your_order_num || "",
-            cost: data.cost || "",
+            cost: data.cost || 0,
             status: data.status || null,
             counter_number: data.counter_number || "",
-            consumption: data.consumption || "",
-            night_consumption: data.night_consumption || "",
+            consumption: data.consumption || 0,
+            night_consumption: data.night_consumption || 0,
             paid: data.paid,
             paid_date: data.paid_date?.split("T")[0] || null,
             rl: data.rl,
@@ -218,7 +218,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             contract_end: data.contract_end?.split("T")[0] || null,
             contract_time: data.contract_time || "",
             family_count: data.family_count || 0,
-            persons_name: data.persons_name || "",
+            persons_name: data.persons_name || [],
             documents_link: data.documents_link || "",
           });
         }
