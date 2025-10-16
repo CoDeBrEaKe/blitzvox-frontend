@@ -216,7 +216,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             start_importing: data.start_importing?.split("T")[0] || null,
             end_importing: data.end_importing?.split("T")[0] || null,
             contract_end: data.contract_end?.split("T")[0] || null,
-            contract_time: data.contract_time || "",
+            contract_time: data.contract_time || null,
             family_count: data.family_count || 0,
             persons_name: data.persons_name || [],
             documents_link: data.documents_link || "",
@@ -446,6 +446,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             </label>
             <select
               {...register("contract_time")}
+              required
               id="contract_time"
               className="max-w-[350px]"
             >

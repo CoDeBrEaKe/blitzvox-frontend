@@ -338,6 +338,7 @@ const Page = () => {
             </label>
             <select
               {...register("contract_time")}
+              required
               id="contract_time"
               className="max-w-[350px]"
             >
