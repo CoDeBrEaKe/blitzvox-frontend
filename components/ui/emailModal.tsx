@@ -66,7 +66,6 @@ export const EmailModal: React.FC<ChildProps> = ({
     error: "",
     success: "",
   });
-
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [emails, setEmails] = useState<variableData[]>([]);
   let email = useRef<EventTarget>(null);
@@ -85,6 +84,7 @@ export const EmailModal: React.FC<ChildProps> = ({
     } else {
       to = [...new Set(Array.from(selectedRows).map((value) => value.email))];
     }
+
     data = {
       ...data,
       subject: data.subject,

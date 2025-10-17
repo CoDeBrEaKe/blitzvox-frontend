@@ -30,6 +30,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useAppSelector } from "@/redux/hooks";
 
 export default function Home() {
   const [filterOn, setFilterOn] = React.useState<string>("");
@@ -51,7 +52,6 @@ export default function Home() {
     start_importing: "Lieferbeginn",
     end_importing: "Endlieferdatum",
     "subscription.type.sub_image": "Verträge",
-    actions: "actions",
   });
   const [showcase, setShowcase] = useState<Record<string, string>>({
     select: "",
@@ -59,7 +59,6 @@ export default function Home() {
     your_order_num: "Ihre Auftr.-Nr.",
     "subscription.sub_name": "Tarif/Produkt",
     counter_number: "Zählernummer",
-    actions: "actions",
   });
   const [dateOn, setDateOn] = useState<string>("sign_date");
   const [dates, setDates] = useState<string[]>([]);
@@ -70,6 +69,8 @@ export default function Home() {
     new Set()
   );
   const router = useRouter();
+
+  const { user } = useAppSelector((state) => state.auth);
   const fetchClientSubsData = async (
     filterQuery: string = "",
     page: number = pagination.currentPage
@@ -104,12 +105,9 @@ export default function Home() {
     fetchClientSubsData(filterQuery, pagination.currentPage);
   }, [pagination.currentPage]);
 
-  const handleSelection = (newSelection: Set<variableData>) => {
-    setSelectedRows(newSelection);
-  };
-
   const toggleAllSelection = async () => {
-    const res = await getClientSubs("", {
+    const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
+    const res = await getClientSubs(filterQuery, {
       page: 1,
       limit: undefined,
       date: dateOn
@@ -295,6 +293,7 @@ export default function Home() {
                       </TableCell>
                     )
                 )}
+                {user?.role == "admin" && <TableCell>Actions</TableCell>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -303,9 +302,6 @@ export default function Home() {
                   <TableRow
                     className="cursor-pointer hover:bg-gray-200"
                     key={sub.id}
-                    onClick={() =>
-                      router.push(`/client-subscription/${sub.id}`)
-                    }
                   >
                     <TableCell>
                       <Checkbox
@@ -318,41 +314,56 @@ export default function Home() {
                         }}
                       />
                     </TableCell>
-                    <TableCell>{sub["client.first_name"]}</TableCell>
-                    <TableCell>{sub["your_order_num"]}</TableCell>
-                    <TableCell>{sub["sign_date"]}</TableCell>
-                    <TableCell>{sub["subscription.sub_name"]}</TableCell>
-                    <TableCell>{sub["subscription.counter_num"]}</TableCell>
-                    <TableCell>{sub["start_importing"]}</TableCell>
-                    <TableCell>{sub["end_importing"]}</TableCell>
-                    <TableCell>
-                      <img
-                        src={sub["subscription.type.sub_image"]}
-                        className="flex self-center"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        className="bg-red-500 cursor-pointer"
-                        onClick={async () => {
-                          if (
-                            confirm("Are you sure you want to delete this row?")
-                          ) {
-                            try {
-                              await axios.delete(
-                                `${BASE_URL}/client-subscription/${sub.id}`,
-                                { withCredentials: true }
-                              );
-                              window.location.reload();
-                            } catch (e) {
-                              console.error(e);
+                    {Object.keys(filterShow).map((key) =>
+                      key != "subscription.type.sub_image" ? (
+                        filterShow[key] && (
+                          <TableCell
+                            onClick={() =>
+                              router.push(`/client-subscription/${sub.id}`)
                             }
+                          >
+                            {sub[key]}
+                          </TableCell>
+                        )
+                      ) : (
+                        <TableCell
+                          onClick={() =>
+                            router.push(`/client-subscription/${sub.id}`)
                           }
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
+                        >
+                          <img
+                            src={sub["subscription.type.sub_image"]}
+                            className="flex self-center"
+                          />
+                        </TableCell>
+                      )
+                    )}
+                    {user?.role == "admin" && (
+                      <TableCell>
+                        <Button
+                          className="bg-red-500 cursor-pointer"
+                          onClick={async () => {
+                            if (
+                              confirm(
+                                "Are you sure you want to delete this row?"
+                              )
+                            ) {
+                              try {
+                                await axios.delete(
+                                  `${BASE_URL}/client-subscription/${sub.id}`,
+                                  { withCredentials: true }
+                                );
+                                window.location.reload();
+                              } catch (e) {
+                                console.error(e);
+                              }
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               ) : (

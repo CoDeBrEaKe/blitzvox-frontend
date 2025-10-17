@@ -154,3 +154,10 @@ export async function getFeedbacks(id: number, client: string) {
   );
   return req.data.feedbacks;
 }
+
+export async function getReports() {
+  const req: variableData = await axios.get(`${BASE_URL}/reports/`, {
+    withCredentials: true,
+  });
+  return req.data;
+}

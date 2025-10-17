@@ -3,16 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { motion } from "framer-motion";
-
-const cityData = [
-  { name: "Cairo", value: 292 },
-  { name: "Alexandria", value: 105 },
-  { name: "Tanta", value: 99 },
-  { name: "Souhag", value: 67 },
-  { name: "Suez", value: 40 },
-  { name: "Assiut", value: 20 },
-  { name: "Minia", value: 12 },
-];
+import { useEffect, useState } from "react";
+import { getReports } from "@/utils/api";
 
 const COLORS = [
   "#C08497",
@@ -25,6 +17,26 @@ const COLORS = [
 ];
 
 export default function ReportsPage() {
+  const [stats, setStats] = useState({
+    totalClients: 0,
+    totalSubscriptions: 0,
+    totalUsers: 0,
+    topCities: [{ city: "", clients: "" }],
+  });
+
+  const getStats = async () => {
+    const res = await getReports();
+
+    setStats(res);
+  };
+
+  useEffect(() => {
+    getStats();
+  }, []);
+  const chartData = stats.topCities.map((city) => ({
+    ...city,
+    clients: parseInt(city.clients) || 0,
+  }));
   return (
     <div className="p-6 space-y-8">
       {/* Title */}
@@ -42,7 +54,7 @@ export default function ReportsPage() {
         <motion.div whileHover={{ scale: 1.03 }}>
           <Card className="bg-green-500 text-white shadow-md">
             <CardContent className="p-6 text-center">
-              <p className="text-4xl font-bold">1200</p>
+              <p className="text-4xl font-bold">{stats.totalClients}</p>
               <p className="text-lg font-medium mt-2">Total Clients</p>
             </CardContent>
           </Card>
@@ -51,7 +63,7 @@ export default function ReportsPage() {
         <motion.div whileHover={{ scale: 1.03 }}>
           <Card className="bg-amber-500 text-white shadow-md">
             <CardContent className="p-6 text-center">
-              <p className="text-4xl font-bold">3600</p>
+              <p className="text-4xl font-bold">{stats.totalSubscriptions}</p>
               <p className="text-lg font-medium mt-2">Subscription</p>
             </CardContent>
           </Card>
@@ -60,7 +72,7 @@ export default function ReportsPage() {
         <motion.div whileHover={{ scale: 1.03 }}>
           <Card className="bg-orange-500 text-white shadow-md">
             <CardContent className="p-6 text-center">
-              <p className="text-4xl font-bold">3</p>
+              <p className="text-4xl font-bold">{stats.totalUsers}</p>
               <p className="text-lg font-medium mt-2">Users</p>
             </CardContent>
           </Card>
@@ -78,15 +90,15 @@ export default function ReportsPage() {
             <ResponsiveContainer>
               <PieChart>
                 <Pie
-                  data={cityData}
+                  data={chartData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
                   outerRadius={100}
                   fill="#8884d8"
-                  dataKey="value"
+                  dataKey="clients"
                 >
-                  {cityData.map((entry, index) => (
+                  {(stats as any).topCities.map((entry: any, index: any) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}
@@ -108,17 +120,17 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody>
-                {cityData.map((city, i) => (
+                {(stats as any).topCities.map((city: any, i: any) => (
                   <tr
-                    key={city.name}
+                    key={city.city}
                     className={`${
                       i % 2 === 0 ? "bg-gray-50" : "bg-white"
                     } hover:bg-gray-100 transition`}
                   >
                     <td className="px-4 py-2 font-medium text-gray-700">
-                      {city.name}
+                      {city.city}
                     </td>
-                    <td className="px-4 py-2 text-gray-600">{city.value}</td>
+                    <td className="px-4 py-2 text-gray-600">{city.clients}</td>
                   </tr>
                 ))}
               </tbody>

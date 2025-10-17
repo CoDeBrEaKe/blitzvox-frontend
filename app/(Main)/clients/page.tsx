@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { Checkbox } from "@/components/ui/checkbox";
 export default function Home() {
   const [active, setActive] = React.useState<boolean>(false);
   const [selectedRows, setSelectedRows] = React.useState<Set<variableData>>(
@@ -63,7 +64,9 @@ export default function Home() {
     subscriptions: "Verträge",
     feedbacks: "Letztes Feedback",
   });
+
   const [showcase, setShowcase] = useState<Record<string, string>>({
+    select: "",
     first_name: "Name",
     email: "E-mail",
     phone: "Telefone",
@@ -122,7 +125,20 @@ export default function Home() {
       }));
     }
   };
+  const toggleAllSelection = async () => {
+    const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
+    const res = await getClients(filterQuery, {
+      page: 1,
+      limit: undefined,
+    });
+    setClients(res.clients);
 
+    if (selectedRows.size === clients.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(res.clients));
+    }
+  };
   useEffect(() => {
     if (Array.from(selectedRows).length) {
       setActive(true);
@@ -248,6 +264,13 @@ export default function Home() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableCell>
+                <Checkbox
+                  checked={clients.length == selectedRows?.size}
+                  onCheckedChange={toggleAllSelection}
+                  aria-label="Select all rows"
+                />
+              </TableCell>
               {Object.keys(filterShow).map(
                 (key) =>
                   filterShow[key] != "" && (
@@ -267,28 +290,44 @@ export default function Home() {
                 <TableRow
                   className="cursor-pointer hover:bg-gray-200"
                   key={client.id}
-                  onClick={() => router.push(`/clients/${client.id}`)}
                 >
                   <TableCell>
-                    {client["first_name"]} {client["familly_name"]}
+                    <Checkbox
+                      checked={selectedRows.has(client)}
+                      onCheckedChange={(checked) => {
+                        const newSelected = new Set(selectedRows);
+                        if (checked) newSelected.add(client);
+                        else newSelected.delete(client);
+                        setSelectedRows(newSelected);
+                      }}
+                    />
                   </TableCell>
-                  <TableCell>{client["email"]}</TableCell>
-                  <TableCell>{client["phone"]}</TableCell>
-                  <TableCell>{client["company"]}</TableCell>
-                  <TableCell>{client["city"]}</TableCell>
-                  <TableCell>
-                    <TableCell>
-                      {client["subscriptions"].map((sub: any) => (
-                        <img
-                          onClick={() =>
-                            router.push(`/client-subscription/${sub.id}`)
-                          }
-                          src={sub.type.sub_image}
-                          className="w-6 h-6 inline-block mr-1"
-                        />
-                      ))}
-                    </TableCell>
-                  </TableCell>
+                  {Object.keys(filterShow).map((key) =>
+                    filterShow[key] ? (
+                      <TableCell
+                        key={`${client.id}-${key}`} // ✅ FIX HERE
+                        onClick={() => router.push(`/clients/${client.id}`)}
+                      >
+                        {filterShow[key] == "Name"
+                          ? `${client["first_name"]} ${client["family_name"]}`
+                          : key != "subscriptions" && key != "feedbacks"
+                          ? client[key]
+                          : key == "subscriptions"
+                          ? client["subscriptions"].map((sub: any) => (
+                              <img
+                                onClick={() =>
+                                  router.push(`/client-subscription/${sub.id}`)
+                                }
+                                src={sub.type.sub_image}
+                                className="w-6 h-6 inline-block mr-1"
+                              />
+                            ))
+                          : client["feedbacks"].length > 0 &&
+                            client["feedbacks"][client["feedbacks"].length - 1]
+                              .feedback}
+                      </TableCell>
+                    ) : null
+                  )}
 
                   <TableCell>
                     <Button
