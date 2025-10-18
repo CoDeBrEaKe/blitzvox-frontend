@@ -7,9 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ArrowUpDown, Check, ChevronDown, MoreHorizontal } from "lucide-react";
@@ -20,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { BASE_URL, variableData } from "@/redux/type";
 import { getClientSubs } from "@/utils/api";
 import { EmailModal } from "@/components/ui/emailModal";
+import { WhatsappModal } from "@/components/ui/whatsappModal";
 import {
   Table,
   TableBody,
@@ -247,6 +245,11 @@ export default function Home() {
               selectedRows={selectedRows}
               page="clientSub"
             ></EmailModal>
+            <WhatsappModal
+              active={active}
+              selectedRows={selectedRows}
+              page="clientSub"
+            ></WhatsappModal>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

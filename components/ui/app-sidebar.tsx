@@ -54,7 +54,7 @@ const items = [
 export function AppSidebar() {
   const pathname = usePathname();
   return (
-    <Sidebar className="z-0 ">
+    <Sidebar className="z-0 shadow-2xl">
       <SidebarContent className="bg-white">
         <SidebarGroup>
           <SidebarGroupContent className="my-30">

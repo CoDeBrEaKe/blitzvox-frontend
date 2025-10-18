@@ -31,6 +31,7 @@ import {
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Checkbox } from "@/components/ui/checkbox";
+import { WhatsappModal } from "@/components/ui/whatsappModal";
 export default function Home() {
   const [active, setActive] = React.useState<boolean>(false);
   const [selectedRows, setSelectedRows] = React.useState<Set<variableData>>(
@@ -42,10 +43,6 @@ export default function Home() {
     clients: [],
     pagination: {},
   });
-
-  const handleSelection = (newSelection: Set<variableData>) => {
-    setSelectedRows(newSelection);
-  };
 
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -159,7 +156,7 @@ export default function Home() {
   };
 
   return (
-    <div className=" text-2xl font-semibold  p-5  rounded-md bg-white m-3">
+    <div className=" text-2xl font-semibold  p-5  rounded-md bg-white m-3 ">
       <h2>Kunden</h2>
       <div className="flex items-center py-4">
         <div className="flex gap-2">
@@ -231,9 +228,15 @@ export default function Home() {
             {"Klant toevoegen"}
           </Link>
         </div>
-        <div className="mx-2 ">
+        <div className="mx-2 flex gap-1">
           <EmailModal active={active} selectedRows={selectedRows}></EmailModal>
+          <WhatsappModal
+            active={active}
+            selectedRows={selectedRows}
+          ></WhatsappModal>
+          <div></div>
         </div>
+
         <div>
           <Form />
         </div>

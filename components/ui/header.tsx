@@ -3,10 +3,10 @@ import React from "react";
 import logo from "@/public/logo.png";
 import { useAppSelector } from "@/redux/hooks";
 function Header() {
-  let { user, loading } = useAppSelector((state) => state.auth);
+  const { user, loading } = useAppSelector((state) => state.auth);
   if ((user as any).name && !loading) {
     return (
-      <header className="flex items-center justify-between px-2 lg:px-8 bg-white h-[90px] z-1 relative">
+      <header className="flex items-center justify-between px-2 lg:px-8 bg-white h-[90px] z-1 relative shadow-md">
         <div className="flex gap-1 items-center">
           <img
             src={logo.src}
