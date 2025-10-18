@@ -38,6 +38,7 @@ export const WhatsappModal: React.FC<ChildProps> = ({
   });
 
   const [pageState, setPageState] = useState({
+    loading: false,
     error: "",
     success: "",
   });
@@ -63,6 +64,7 @@ export const WhatsappModal: React.FC<ChildProps> = ({
       to: to,
     };
     try {
+      setPageState({ loading: true, success: "", error: "" });
       const res = await axios.post(
         `${BASE_URL}/send-message`,
         {
@@ -73,23 +75,26 @@ export const WhatsappModal: React.FC<ChildProps> = ({
         }
       );
       if (res.status == 200) {
-        setPageState((prev) => {
-          return { ...prev, error: "", success: "Messages Sent Successfully" };
+        setPageState({
+          error: "",
+          loading: true,
+          success: "Messages Sent Successfully",
         });
+
         window.location.reload();
       } else {
-        setPageState((prev) => {
-          return { ...prev, success: "", error: "Something went wrong" };
+        setPageState({
+          error: "Something wrong happened",
+          loading: false,
+          success: "",
         });
         window.location.reload();
       }
     } catch (e) {
-      setPageState((prev) => {
-        return {
-          ...prev,
-          success: "",
-          error: e instanceof Error ? e.message : String(e),
-        };
+      setPageState({
+        loading: false,
+        success: "",
+        error: e instanceof Error ? e.message : String(e),
       });
     }
   };
@@ -141,14 +146,18 @@ export const WhatsappModal: React.FC<ChildProps> = ({
 
             <Button
               type="submit"
-              disabled={!isDirty}
+              disabled={isDirty ? (pageState.loading ? true : false) : false}
               className={`self-center text-center mx-auto px-10 py-2 my-10 center flex justify-center cursor-pointer rounded-2xl text-xl ${
                 isDirty
                   ? "bg-[#e4674b] hover:bg-[#d4563a]"
                   : "bg-gray-400 cursor-not-allowed"
               }`}
             >
-              {isDirty ? "Änderungen speichern" : "keine Änderungen"}
+              {isDirty
+                ? pageState.loading
+                  ? "laden"
+                  : "Änderungen speichern"
+                : "keine Änderungen"}
             </Button>
           </form>
         </DialogContent>
