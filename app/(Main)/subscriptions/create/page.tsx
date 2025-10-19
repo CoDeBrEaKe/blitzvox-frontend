@@ -1,16 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  getClientSubData,
-  getSubscriptionData,
-  getSubscriptionTypes,
-  getUsers,
-} from "@/utils/api";
+
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "@/redux/type";
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { getSubscriptionTypes } from "@/utils/api";
 
 interface FormData {
   sub_name: string;
@@ -20,14 +16,12 @@ interface FormData {
 
 const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   const [subscriptionTypes, setSubscriptionTypes] = useState<
-    Record<string, any>
-  >({});
-  const [isLoading, setIsLoading] = useState(true);
+    Record<string, any>[]
+  >([{}]);
   const [pageState, setPageState] = useState({
     error: "",
     success: "",
   });
-  const { id } = React.use(params);
 
   // Main form for client data
   const {
@@ -61,6 +55,17 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
       console.error();
     }
   };
+
+  const getSubsTypes = async () => {
+    const res = await getSubscriptionTypes();
+    if (res) {
+      setSubscriptionTypes(res.types);
+    }
+  };
+
+  useEffect(() => {
+    getSubsTypes();
+  }, []);
 
   return (
     <div className="px-8 py-4">
@@ -101,7 +106,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               className="max-w-[350px] shadow border-1 p-2 rounded-md text-base font-medium"
             >
               <option selected>Kies type</option>
-              {subscriptionTypes.map((sub: any) => (
+              {subscriptionTypes?.map((sub: any) => (
                 <option value={`${sub.id}`}>{sub.sub_type}</option>
               ))}
             </select>

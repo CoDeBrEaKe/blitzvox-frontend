@@ -105,7 +105,12 @@ export default function ReportsPage() {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  formatter={(value, name, props) => [
+                    `${props.payload.city}: ${value} clients`,
+                    ,
+                  ]}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>

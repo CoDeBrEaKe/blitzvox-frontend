@@ -123,6 +123,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               id="role"
               {...register("role")}
               className="max-w-[350px] text-lg font-medium"
+              required
             >
               <option value="" selected disabled>
                 Choose
