@@ -221,12 +221,19 @@ export default function Home() {
                   <TableRow
                     className="cursor-pointer hover:bg-gray-200"
                     key={type.id}
-                    onClick={() =>
-                      router.push(`/client-subscription/${type.id}`)
-                    }
                   >
-                    <TableCell>{type["sub_type"]}</TableCell>
-                    <TableCell className="">
+                    <TableCell
+                      onClick={() =>
+                        router.push(`/client-subscription/${type.id}`)
+                      }
+                    >
+                      {type["sub_type"]}
+                    </TableCell>
+                    <TableCell
+                      onClick={() =>
+                        router.push(`/client-subscription/${type.id}`)
+                      }
+                    >
                       <img
                         src={type["sub_image"]}
                         className="flex self-center"
@@ -241,11 +248,11 @@ export default function Home() {
                             confirm("Are you sure you want to delete this row?")
                           ) {
                             try {
-                              await axios.delete(
-                                `${BASE_URL}/client-subscription/${type.id}`,
+                              const res = await axios.delete(
+                                `${BASE_URL}/subscription-types/${type.id}`,
                                 { withCredentials: true }
                               );
-                              window.location.reload();
+                              if (res.status == 200) window.location.reload();
                             } catch (e) {
                               console.error(e);
                             }

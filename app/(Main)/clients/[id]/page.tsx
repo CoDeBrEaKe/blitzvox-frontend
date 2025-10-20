@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
+import { useRouter } from "next/navigation";
 interface FormData {
   title: string;
   first_name: string;
@@ -58,7 +58,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
   const [feedbacks, setFeedbacks] = useState<any[]>([]); // Separate state for feedbacks
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const { id } = React.use(params);
-
+  const router = useRouter();
   // Main form for client data
   const {
     register,
@@ -448,7 +448,11 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         <TableBody>
           {client.subs && client.subs.length > 0 ? (
             client.subs.map((row: any) => (
-              <TableRow key={row.id} className="hover:cursor-pointer">
+              <TableRow
+                key={row.id}
+                className="hover:cursor-pointer"
+                onClick={() => router.push(`/client-subscription/${row.id}`)}
+              >
                 <TableCell>{row.counter_number}</TableCell>
                 <TableCell>{row.creator.name}</TableCell>
                 <TableCell>{row.start_importing}</TableCell>
