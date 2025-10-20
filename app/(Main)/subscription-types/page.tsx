@@ -248,11 +248,11 @@ export default function Home() {
                             confirm("Are you sure you want to delete this row?")
                           ) {
                             try {
-                              await axios.delete(
-                                `${BASE_URL}/client-subscription/${type.id}`,
+                              const res = await axios.delete(
+                                `${BASE_URL}/subscription-types/${type.id}`,
                                 { withCredentials: true }
                               );
-                              window.location.reload();
+                              if (res.status == 200) window.location.reload();
                             } catch (e) {
                               console.error(e);
                             }
