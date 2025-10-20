@@ -249,7 +249,7 @@ const Page = ({ params }: { params: { id: number } }) => {
               name="user_id"
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange}>
+                <Select onValueChange={field.onChange} required>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Toewijzen aan" />
                   </SelectTrigger>
