@@ -205,6 +205,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
       return total + (sub.cost || 0);
     }, 0) || 0;
 
+  console.log(totalProvision);
   return (
     <div className="px-8 py-4">
       <form onSubmit={handleSubmit(onSubmit)}>

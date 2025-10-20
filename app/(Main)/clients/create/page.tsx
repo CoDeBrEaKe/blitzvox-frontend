@@ -5,7 +5,7 @@ import { getClientData, getUsers } from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import { BASE_URL, variableData } from "@/redux/type";
 import { useForm, Controller } from "react-hook-form";
-import axios from "axios";
+import axios, { Axios, AxiosError } from "axios";
 import {
   Select,
   SelectContent,
@@ -41,6 +41,11 @@ const Page = ({ params }: { params: { id: number } }) => {
   const { user, loading } = useAppSelector((state) => state.auth);
   const [users, setUsers] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [pageState, setPageState] = useState({
+    success: "",
+    error: "",
+    loading: false,
+  });
   const id = params.id;
   // Main form for client data
   const {
@@ -57,6 +62,7 @@ const Page = ({ params }: { params: { id: number } }) => {
 
   // Submit main client form
   const onSubmit = async (data: FormData) => {
+    setPageState;
     try {
       data = {
         ...data,
@@ -68,16 +74,30 @@ const Page = ({ params }: { params: { id: number } }) => {
           "Content-Type": "application/json",
         },
       });
+      console.log(response.data);
 
       if (response.status == 201 || response.status == 200) {
-        alert("Client created successfully!");
+        setPageState({
+          success: "Client created successfully",
+          error: "",
+          loading: false,
+        });
         reset();
+        window.location.reload();
       } else {
-        alert("Failed to create client data");
+        setPageState({
+          success: "",
+          error: response.data.message,
+          loading: false,
+        });
       }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Error creating client data");
+    } catch (error: any) {
+      console.log("Error submitting form:", error!.response.data.message);
+      setPageState({
+        success: "",
+        error: error!.response.data.message,
+        loading: false,
+      });
     }
   };
 
@@ -284,6 +304,17 @@ const Page = ({ params }: { params: { id: number } }) => {
             />
           </div>
         </div>
+
+        {pageState.error && (
+          <p className="text-red-500 text-sm font-medium w-full text-center">
+            {pageState.error}
+          </p>
+        )}
+        {pageState.success && (
+          <p className="text-green-500 text-sm font-medium w-full text-center">
+            {pageState.success}
+          </p>
+        )}
 
         <Button
           type="submit"

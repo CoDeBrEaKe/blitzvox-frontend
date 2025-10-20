@@ -77,7 +77,7 @@ export default function Home() {
       page: page,
       limit: 10,
       date: {
-        sign_date: [],
+        date: { [dateOn]: dates },
       },
     });
     setClientsSubs(res.clientSubs);
@@ -86,13 +86,14 @@ export default function Home() {
     if (res.pagination) {
       setPagination((prev) => ({
         ...prev,
-        currentPage: res.pagination.currentPage || page,
+        currentPage: res.pagination.currentPage || 1,
         totalPages: res.pagination.totalPages || 1,
         totalItems: res.pagination.totalItems || 0,
         hasNext: res.pagination.hasNext || false,
         hasPrev: res.pagination.hasPrev || false,
       }));
     }
+    return res;
   };
   useEffect(() => {
     fetchClientSubsData();
@@ -105,14 +106,7 @@ export default function Home() {
 
   const toggleAllSelection = async () => {
     const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
-    const res = await getClientSubs(filterQuery, {
-      page: 1,
-      limit: undefined,
-      date: dateOn
-        ? { dateOn: dates }
-        : ["1900-06-04", new Date().toISOString()],
-    });
-    setClientsSubs(res.clientSubs);
+    const res = await fetchClientSubsData(filterQuery, 1);
 
     if (selectedRows.size === clientSubs.length) {
       setSelectedRows(new Set());
@@ -157,11 +151,10 @@ export default function Home() {
               className="flex gap-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                let filteration = await getClientSubs(`${filterOn}${filter}`, {
-                  page: pagination.currentPage,
-                  limit: 10,
-                  date: { [dateOn]: dates },
-                });
+                let filteration = await fetchClientSubsData(
+                  `${filterOn}${filter}`,
+                  1
+                );
                 setClientsSubs(filteration.clientSubs);
               }}
             >

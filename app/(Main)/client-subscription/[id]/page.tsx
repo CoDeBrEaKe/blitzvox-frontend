@@ -448,8 +448,11 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
               {...register("contract_time")}
               required
               id="contract_time"
-              className="max-w-[350px]"
+              className="max-w-[350px] shadow-md bg-blue-100 px-5 py-2 rounded-md"
             >
+              <option value="" disabled selected>
+                Choose
+              </option>
               <option
                 value="1 Year"
                 selected={clientSub.contract_time === "1 Year"}
