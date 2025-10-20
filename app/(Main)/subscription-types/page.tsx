@@ -221,12 +221,19 @@ export default function Home() {
                   <TableRow
                     className="cursor-pointer hover:bg-gray-200"
                     key={type.id}
-                    onClick={() =>
-                      router.push(`/client-subscription/${type.id}`)
-                    }
                   >
-                    <TableCell>{type["sub_type"]}</TableCell>
-                    <TableCell className="">
+                    <TableCell
+                      onClick={() =>
+                        router.push(`/client-subscription/${type.id}`)
+                      }
+                    >
+                      {type["sub_type"]}
+                    </TableCell>
+                    <TableCell
+                      onClick={() =>
+                        router.push(`/client-subscription/${type.id}`)
+                      }
+                    >
                       <img
                         src={type["sub_image"]}
                         className="flex self-center"

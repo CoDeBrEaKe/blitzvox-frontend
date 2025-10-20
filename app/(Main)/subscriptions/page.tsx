@@ -223,11 +223,22 @@ export default function Home() {
                   <TableRow
                     className="cursor-pointer hover:bg-gray-200"
                     key={sub.id}
-                    onClick={() => router.push(`/subscriptions/${sub.id}`)}
                   >
-                    <TableCell>{sub["sub_name"]}</TableCell>
-                    <TableCell>{sub["company"]}</TableCell>
-                    <TableCell>{sub["type.sub_type"]}</TableCell>
+                    <TableCell
+                      onClick={() => router.push(`/subscriptions/${sub.id}`)}
+                    >
+                      {sub["sub_name"]}
+                    </TableCell>
+                    <TableCell
+                      onClick={() => router.push(`/subscriptions/${sub.id}`)}
+                    >
+                      {sub["company"]}
+                    </TableCell>
+                    <TableCell
+                      onClick={() => router.push(`/subscriptions/${sub.id}`)}
+                    >
+                      {sub["type.sub_type"]}
+                    </TableCell>
 
                     <TableCell>
                       <Button
