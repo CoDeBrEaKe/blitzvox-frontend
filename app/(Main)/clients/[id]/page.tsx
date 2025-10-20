@@ -200,12 +200,13 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
     );
   }
 
-  const totalProvision =
-    client.subscriptions?.reduce((total: number, sub: any) => {
-      return total + (sub.cost || 0);
-    }, 0) || 0;
+  let totalProvision = 0;
 
-  console.log(totalProvision);
+  client.subscriptions.forEach(
+    (e: any) => (totalProvision += parseInt(e.Client_Sub.cost))
+  );
+
+  console.log(client.subscriptions);
   return (
     <div className="px-8 py-4">
       <form onSubmit={handleSubmit(onSubmit)}>

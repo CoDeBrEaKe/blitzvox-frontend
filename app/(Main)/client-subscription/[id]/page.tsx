@@ -124,7 +124,6 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
       }
 
       // Update client subscription
-      console.log(updatedData);
       const response = await axios.put(
         `${BASE_URL}/client-subscription/${id}`,
         updatedData,
@@ -144,6 +143,7 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
         });
         reset(updatedData);
         setSelectedFile(null); // Clear file after successful upload
+        window.location.reload();
       }
     } catch (e: any) {
       setPageState({

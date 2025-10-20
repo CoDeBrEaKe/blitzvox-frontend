@@ -68,10 +68,10 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
             error: "",
           });
           reset(data);
+          window.location.reload();
         }
       } catch (e: any) {
         setPageState({ ...pageState, error: e.response.data.message });
-        console.error();
       }
     }
     try {
@@ -92,10 +92,10 @@ const Page = ({ params }: { params: Promise<{ id: number }> }) => {
           error: "",
         });
         reset(data);
+        window.location.reload();
       }
     } catch (e: any) {
-      setPageState({ ...pageState, error: e.response.data.message });
-      console.error();
+      setPageState({ success: "", error: "e.response.data.message " });
     }
   };
 

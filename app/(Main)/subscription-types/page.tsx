@@ -224,14 +224,14 @@ export default function Home() {
                   >
                     <TableCell
                       onClick={() =>
-                        router.push(`/client-subscription/${type.id}`)
+                        router.push(`/subscription-types/${type.id}`)
                       }
                     >
                       {type["sub_type"]}
                     </TableCell>
                     <TableCell
                       onClick={() =>
-                        router.push(`/client-subscription/${type.id}`)
+                        router.push(`/subscription-types/${type.id}`)
                       }
                     >
                       <img
