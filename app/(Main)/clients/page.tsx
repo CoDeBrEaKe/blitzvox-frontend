@@ -77,12 +77,13 @@ export default function Home() {
   // Fetch clients data
   const fetchClientsData = async (
     filterQuery: string = "",
-    page: number = pagination.currentPage
+    page: number = pagination.currentPage,
+    limit?: number | undefined
   ) => {
     try {
       const clientsData = await getClients(filterQuery, {
         page: page,
-        limit: pagination.itemsPerPage,
+        limit: limit,
       });
 
       setClientsData(clientsData);
@@ -102,16 +103,17 @@ export default function Home() {
     } catch (error) {
       console.error("Error fetching clients:", error);
     }
+    return clientsData;
   };
 
   useEffect(() => {
-    fetchClientsData();
+    fetchClientsData("", 1, 10);
   }, []);
 
   // Refetch when page changes
   useEffect(() => {
     const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
-    fetchClientsData(filterQuery, pagination.currentPage);
+    fetchClientsData(filterQuery, pagination.currentPage, 10);
   }, [pagination.currentPage]);
 
   const handlePageChange = (newPage: number) => {
@@ -124,10 +126,7 @@ export default function Home() {
   };
   const toggleAllSelection = async () => {
     const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
-    const res = await getClients(filterQuery, {
-      page: 1,
-      limit: undefined,
-    });
+    const res = await fetchClientsData(filterQuery, 1, undefined);
     setClients(res.clients);
 
     if (selectedRows.size === clients.length) {
@@ -164,12 +163,12 @@ export default function Home() {
             className="flex gap-2"
             onSubmit={async (e) => {
               e.preventDefault();
-              let filteration = await getClients(`${filterOn}${filter}`, {
-                page: pagination.currentPage,
-                limit: 10,
-              });
+              let filteration = await fetchClientsData(
+                `${filterOn}${filter}`,
+                1,
+                10
+              );
               setClients(filteration.clients);
-              setPagination(filteration.pagination);
             }}
           >
             <Input

@@ -71,11 +71,12 @@ export default function Home() {
   const { user } = useAppSelector((state) => state.auth);
   const fetchClientSubsData = async (
     filterQuery: string = "",
-    page: number = pagination.currentPage
+    page: number = pagination.currentPage,
+    limit?: number | undefined
   ) => {
     const res = await getClientSubs(filterQuery, {
       page: page,
-      limit: 10,
+      limit: limit,
       date: {
         date: { [dateOn]: dates },
       },
@@ -95,18 +96,19 @@ export default function Home() {
     }
     return res;
   };
+
   useEffect(() => {
-    fetchClientSubsData();
+    fetchClientSubsData("", 1, 10);
   }, []);
 
   useEffect(() => {
     const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
-    fetchClientSubsData(filterQuery, pagination.currentPage);
+    fetchClientSubsData(filterQuery, pagination.currentPage, 10);
   }, [pagination.currentPage]);
 
   const toggleAllSelection = async () => {
     const filterQuery = filterOn && filter ? `${filterOn}${filter}` : "";
-    const res = await fetchClientSubsData(filterQuery, 1);
+    const res = await fetchClientSubsData(filterQuery, 1, undefined);
 
     if (selectedRows.size === clientSubs.length) {
       setSelectedRows(new Set());
@@ -153,7 +155,8 @@ export default function Home() {
                 e.preventDefault();
                 let filteration = await fetchClientSubsData(
                   `${filterOn}${filter}`,
-                  1
+                  1,
+                  10
                 );
                 setClientsSubs(filteration.clientSubs);
               }}

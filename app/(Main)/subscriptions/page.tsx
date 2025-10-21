@@ -249,7 +249,7 @@ export default function Home() {
                           ) {
                             try {
                               await axios.delete(
-                                `${BASE_URL}/subscription/${sub.id}`,
+                                `${BASE_URL}/subscriptions/${sub.id}`,
                                 { withCredentials: true }
                               );
                               window.location.reload();
